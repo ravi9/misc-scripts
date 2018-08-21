@@ -15,8 +15,8 @@ networks=( inception3 resnet50 resnet152 vgg16 )
 batch_sizes=( 1 16 32 64 128 )
 
 # Assign num_cores to the number of physical cores on your machine
-cores_per_socket=`lscpu | grep "Core(s) per socket" | cut -d':' -f2 | sed "s/ //g"`
-num_sockets=`lscpu | grep "Socket(s)" | cut -d':' -f2 | sed "s/ //g"`
+cores_per_socket=`lscpu | grep "Core(s) per socket" | cut -d':' -f2 | xargs`
+num_sockets=`lscpu | grep "Socket(s)" | cut -d':' -f2 | xargs`
 num_cores=$((cores_per_socket * num_sockets))
 
 if [ -d benchmarks ]
