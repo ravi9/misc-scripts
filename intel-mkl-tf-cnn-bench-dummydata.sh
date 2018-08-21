@@ -8,6 +8,7 @@
 num_warmup_batches=20
 num_batches=30
 num_inter_threads=2
+kmp_blocktime=0
 
 #networks=( alexnet googlenet inception3 resnet50 resnet152 vgg16 )
 networks=( inception3 resnet50 resnet152 vgg16 )
@@ -38,8 +39,8 @@ for network in "${networks[@]}" ; do
 
         time python tf_cnn_benchmarks.py --device=cpu --mkl=True --data_format=NCHW \
               --kmp_affinity='granularity=fine,noverbose,compact,1,0' \
-              --kmp_blocktime=0 --kmp_settings=1 \
-              --num_warmup_batches $num_warmup_batches --batch_size=$bs \
+              --kmp_blocktime=$kmp_blocktime --kmp_settings=1 \
+              --num_warmup_batches=$num_warmup_batches --batch_size=$bs \
               --num_batches=$num_batches --model=$network  \
               --num_intra_threads=$num_cores --num_inter_threads=$num_inter_threads \
               --forward_only=True \
