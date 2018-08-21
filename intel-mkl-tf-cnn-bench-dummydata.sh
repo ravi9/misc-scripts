@@ -21,7 +21,7 @@ if [ -d benchmarks ]
 then
     echo -e "tf_cnn bechmarks repo exists. Continuting with the existing \n"
 else
-    git clone https://github.com/tensorflow/benchmarks.git -b cnn_tf_v1.8_compatible
+    git clone https://github.com/tensorflow/benchmarks.git
     echo -e "Downloaded tf_cnn bechmarks repo \n"
 fi
 
