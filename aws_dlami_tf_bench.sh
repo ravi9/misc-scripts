@@ -15,32 +15,55 @@
 # limitations under the License.
 #
 
-####### USAGE #########
-# bash aws_dlami_tf_bench.sh <option>
+####### USAGE Examples #########
+# bash aws_dlami_tf_bench.sh
+# Runs Inference benchmark with resnet50 with BZ=32
 #
-# By default, this runs only InceptionV3 at batch size 128. Pass "all" in the <option>
-# position to run all networks and batch sizes in the benchmarking suite.
+# bash aws_dlami_tf_bench.sh -n "vgg16" -i "False"
+# Runs Training benchmark with vgg16 with BZ=32
 #
-# This script runs training with TensorFlow's CNN Benchmarks and summarizes throughput increases when
-# using Intel optimized TensorFlow.
-# Note: you may need to edit benchmarks/scripts/tf_cnn_benchmarks/datasets.py to
-# import _pickle instead of Cpickle
+# bash aws_dlami_tf_bench.sh -n "vgg16"
+# Runs Inference benchmark with vgg16 with BZ=32
+#
+# bash aws_dlami_tf_bench.sh -n "all" -i "False"
+# Runs Training benchmark with inception3, resnet50, resnet152, vgg16 with
+# BZ=32, 64, 128
+
+# bash aws_dlami_tf_bench.sh -n "all"
+# Runs Inference benchmark with inception3, resnet50, resnet152, vgg16 with
+# BZ=32, 64, 128
+#
+# This script runs training with TensorFlow's CNN Benchmarks on AWS DLAMI and
+# summarizes throughput increases when using Intel optimized TensorFlow.
 
 TF_ENV_NAME=tensorflow_p36
 # Set number of batches
 num_batches=( 30 )
 
-# Check if "all" option was passed, set networks and batch sizes accordingly
-option=$1
-if [ -z $option ]
-then
-  networks=( inception3 )
-  batch_sizes=( 32 )
-else
+net_arg="resnet50"
+inf_arg="True"
+
+while getopts ":n:i:" arg; do
+  case $arg in
+    n) net_arg=$OPTARG;;
+    i) inf_arg=$OPTARG;;
+  esac
+done
+
+# Set the default and update with arg if passed
+networks=( $net_arg )
+batch_sizes=( 32 )
+
+if [ "$net_arg" = "all" ]; then
   networks=( inception3 resnet50 resnet152 vgg16 )
   batch_sizes=( 32 64 128 )
 fi
 
+# Set the default and update with arg if passed
+inf_flag="$inf_arg"
+
+echo "Networks: ${networks}"
+echo "Inference: $inf_flag"
 
 # Check TF version so that we clone the right benchmarks
 source activate ${TF_ENV_NAME}
@@ -70,6 +93,7 @@ for network in "${networks[@]}" ; do
     --model "$network" \
     --batch_size "$bs" \
     --num_batches "$num_batches" \
+    --forward_only=$inf_flag \
     2>&1 | tee net_"$network"_bs_"$bs"_default.log
 
   done
@@ -90,6 +114,7 @@ for network in "${networks[@]}" ; do
     --model "$network" \
     --batch_size "$bs" \
     --num_batches "$num_batches" \
+    --forward_only=$inf_flag \
     2>&1 | tee net_"$network"_bs_"$bs"_optimized.log
 
   done
@@ -105,6 +130,8 @@ runs=0
 # Set headers
 echo $'\n\n\n\n'
 echo "######### Executive Summary #########"
+echo $'\n'
+echo "Inference: $inf_flag"
 echo $'\n'
 echo "Environment |  Network   | Batch Size | Images/Second"
 echo "--------------------------------------------------------"
