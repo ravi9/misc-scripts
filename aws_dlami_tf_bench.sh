@@ -55,6 +55,9 @@ git clone -b cnn_tf_v${version}.${release}_compatible  https://github.com/tensor
 cd benchmarks/scripts/tf_cnn_benchmarks
 rm *.log # remove logs from any previous benchmark runs
 
+# Install default tensorflow (non-Intel-optimized)
+pip install tensorflow==${tfversion}
+
 ## Run benchmark scripts in the default environment
 for network in "${networks[@]}" ; do
   for bs in "${batch_sizes[@]}"; do
