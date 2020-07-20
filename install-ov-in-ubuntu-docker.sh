@@ -27,4 +27,4 @@ source /opt/intel/openvino/bin/setupvars.sh
 
 python3 -c "from openvino.inference_engine import IECore, get_version as get_ov_version; print('openvino version: ' + get_ov_version())"
 
-#python3 /opt/intel/openvino/deployment_tools/tools/benchmark_tool/benchmark_app.py -m './inceptionv3/IR_models/FP32/inceptionv3.xml' -nireq 1 -nstreams 1 -t 10
+python3 -c "from openvino.tools.benchmark.main import main"
