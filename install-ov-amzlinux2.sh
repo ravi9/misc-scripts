@@ -38,18 +38,18 @@ sudo yum -y install \
 #  rpm -i libva-1.8.3-1.el7.x86_64.rpm
 #  sudo yum -y install ffmpeg
 
- sudo yum-config-manager --add-repo https://sudo yum.repos.intel.com/openvino/2020/setup/intel-openvino-2020.repo
- rpm --import https://sudo yum.repos.intel.com/openvino/2020/setup/RPM-GPG-KEY-INTEL-OPENVINO-2020
- sudo yum repolist | grep -i openvino
- sudo yum list intel-openvino-runtime*
- sudo yum list intel-openvino*2020.4*
+sudo yum-config-manager --add-repo https://yum.repos.intel.com/openvino/2020/setup/intel-openvino-2020.repo
+sudo rpm --import https://yum.repos.intel.com/openvino/2020/setup/RPM-GPG-KEY-INTEL-OPENVINO-2020
+sudo yum repolist | grep -i openvino
+sudo yum list intel-openvino-runtime*
+sudo yum list intel-openvino*2020.4*
 
 
- sudo yum -y install \
-        intel-openvino-runtime-centos7-2020.4.287.x86_64 \
-        intel-openvino-model-optimizer-2020.4.287.x86_64 \
-        intel-openvino-omz-tools-2020.4.287.x86_64 \
-        intel-openvino-omz-dev-2020.4.287.x86_64
+sudo yum -y install \
+    intel-openvino-runtime-centos7-2020.4.287.x86_64 \
+    intel-openvino-model-optimizer-2020.4.287.x86_64 \
+    intel-openvino-omz-tools-2020.4.287.x86_64 \
+    intel-openvino-omz-dev-2020.4.287.x86_64
 
 
 sudo pip3 install --upgrade pip
