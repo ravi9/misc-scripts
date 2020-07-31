@@ -52,7 +52,7 @@ sudo yum -y install \
     intel-openvino-omz-dev-2020.4.287.x86_64
 
 
-sudo pip3 install --upgrade pip
+pip3 install --upgrade pip
 
 cd /opt/intel/openvino/deployment_tools/model_optimizer && \
 pip install -r requirements_tf.txt && \
