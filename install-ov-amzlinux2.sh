@@ -27,7 +27,11 @@ cd /opt/intel/openvino_2021/deployment_tools/model_optimizer && \
 pip install -r requirements_tf.txt && \
 pip install -r requirements_onnx.txt && \
 pip install -r requirements_mxnet.txt && \
-pip install ipython progress tqdm matplotlib torch
+pip install mxnet -U && \
+pip install tensorflow -U && \
+pip install torch && \
+pip install notebook progress tqdm matplotlib scipy
+
 
 
 # Benchmark tools and others are missing, so this is a hacky fix.
