@@ -51,6 +51,12 @@ frozen_graph = freeze_graph(session.graph, session, [out.op.name for out in mode
 
 from openvino.inference_engine import IENetwork, IECore
 
+
+from openvino import inference_engine as ie
+print('OpenVINO Inference Engine version: {}'.format(ie.__version__))
+
+
+
 !python3 /opt/intel/openvino/deployment_tools/tools/benchmark_tool/benchmark_app.py \
 -m './inceptionv3/IR_models/FP32/inceptionv3.xml' \
 -nireq 1 -nstreams 1 -t 10
