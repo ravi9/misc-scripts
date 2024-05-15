@@ -3,7 +3,7 @@ Example Usage:
  
 python cpu-mem-profiler.py -p "python my-script.py -n 'myarg' "
 
-To print memory usage in GB:
+To print peak memory usage in GB:
 python cpu-mem-profiler.py -p "python my-script.py -n 'myarg' " -m GB
 
 memory_info().rss: returns the resident set size, which is the non-swapped physical memory a process has used (in bytes).
