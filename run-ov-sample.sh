@@ -1,8 +1,9 @@
 #!/bin/bash
 
-conda create -n ov-test python=3.8 -y
+python3.10 -m venv ov-p310-env
 
-conda activate ov-test
+source ov-p310-env/bin/activate
+
 pip install openvino-dev[tensorflow,pytorch,onnx]
 mkdir test-ov && cd test-ov
 
