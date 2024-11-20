@@ -8,6 +8,7 @@ import json
 from datetime import datetime
 from enum import Enum, auto
 import numpy as np
+import argparse
 
 class RunMode(Enum):
     EAGER = "eager"
@@ -71,7 +72,7 @@ def run_inference(pipe: DiffusionPipeline, params: Dict, iteration: int = 0) -> 
     
     return image, execution_time
 
-def run_benchmark(run_mode: str, params: Dict, benchmark_iterations: int) -> Dict:
+def run_benchmark(run_mode: str, params: Dict, num_iter: int) -> Dict:
     """Run a single benchmark configuration with multiple iterations"""
     try:
         pipe = setup_pipeline(
@@ -85,14 +86,14 @@ def run_benchmark(run_mode: str, params: Dict, benchmark_iterations: int) -> Dic
         warmup_image, warmup_time = run_inference(pipe, params, iteration=0)
         
         # Benchmark iterations
-        print(f"\nRunning {benchmark_iterations} benchmark iterations...")
+        print(f"\nRunning {num_iter} benchmark iterations...")
         iteration_times = []
         final_image = None
         
-        for i in range(benchmark_iterations):
+        for i in range(num_iter):
             image, exec_time = run_inference(pipe, params, iteration=i+1)
             iteration_times.append(exec_time)
-            if i == benchmark_iterations - 1:
+            if i == num_iter - 1:
                 final_image = image
         
         # Calculate statistics
@@ -139,6 +140,15 @@ def save_results(results: List[Dict], filename: str = None):
     print(f"\nResults saved to {filename}")
 
 def main():
+
+    # Parse command-line args
+    parser = argparse.ArgumentParser(description='Stable Diffusion Benchmark script')
+    parser.add_argument('-ni', '--num_iter', type=int, default=3, help='Number of benchmark iterations')
+    args = parser.parse_args()
+    
+    # Number of benchmark iterations
+    num_iter = args.bench_iter
+
     # Run modes to test
     run_modes = [
         RunMode.EAGER.value,
@@ -157,18 +167,15 @@ def main():
         "dtype": torch.float16
     }
     
-    # Number of benchmark iterations
-    benchmark_iterations = 5  # Adjust this value as needed
-    
     # Run benchmarks
     results = []
     for mode in run_modes:
         print("\n" + "="*50)
         print(f"Running benchmark with run mode: {mode}")
-        print(f"Number of iterations: {benchmark_iterations}")
+        print(f"Number of iterations: {num_iter}")
         print("="*50)
         
-        result = run_benchmark(mode, params, benchmark_iterations)
+        result = run_benchmark(mode, params, num_iter)
         results.append(result)
     
     # Save results
@@ -197,3 +204,5 @@ def main():
 
 if __name__ == "__main__":
     main()
+
+# Usage: python torchcompile-sdxl-lcm-benchmark.py -ni 3
