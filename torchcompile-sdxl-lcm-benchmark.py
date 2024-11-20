@@ -9,6 +9,8 @@ from datetime import datetime
 from enum import Enum, auto
 import numpy as np
 import argparse
+import sys
+import importlib.metadata
 
 class RunMode(Enum):
     EAGER = "eager"
@@ -130,15 +132,37 @@ def run_benchmark(run_mode: str, params: Dict, num_iter: int) -> Dict:
             "error": str(e)
         }
 
-def save_results(results: List[Dict], filename: str = None):
+def save_results(results: List[Dict], sw_versions: List[Dict], filename: str = None):
     """Save benchmark results to a JSON file"""
     if filename is None:
         filename = f"benchmark_results_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
     
     with open(filename, 'w') as f:
         json.dump(results, f, indent=2)
+        json.dump(sw_versions, f, indent=2)
+        
     print(f"\nResults saved to {filename}")
 
+def get_sw_versions():
+    sw_versions = {}
+    packages = [
+        ("Python", "python"),
+        ("TorchServe", "torchserve"),
+        ("OpenVINO", "openvino"),
+        ("PyTorch", "torch"),
+        ("Transformers", "transformers"),
+        ("Diffusers", "diffusers")
+    ]
+
+    for name, package in packages:
+        try:
+            version = importlib.metadata.version(package)
+            sw_versions[name] = version
+        except Exception as e:
+            sw_versions[name] = "Not installed"
+
+    return sw_versions
+    
 def main():
 
     # Parse command-line args
@@ -178,8 +202,14 @@ def main():
         result = run_benchmark(mode, params, num_iter)
         results.append(result)
     
+    sw_versions = get_sw_versions()
+    print("\nSoftware Versions:")
+    print("-"*50)
+    for name, version in sw_versions.items():
+        print(f"{name}: {version}")
+
     # Save results
-    save_results(results)
+    save_results(results, sw_versions)
     
     # Print summary
     print("\nBenchmark Summary:")
