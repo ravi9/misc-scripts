@@ -14,6 +14,8 @@ wget https://storage.openvinotoolkit.org/repositories/open_model_zoo/2022.3/mode
 
 benchmark_app -m yolo-v2-tiny-vehicle-detection-0001.xml -t 5 -d CPU
 
+# For other variants of the model: https://github.com/openvinotoolkit/open_model_zoo/blob/master/models/intel/yolo-v2-tiny-vehicle-detection-0001/model.yml
+
 # omz_downloader --name efficientnet-b0-pytorch
 # omz_converter --name efficientnet-b0-pytorch
 # benchmark_app -m public/efficientnet-b0-pytorch/efficientnet-b0.onnx -t 5
