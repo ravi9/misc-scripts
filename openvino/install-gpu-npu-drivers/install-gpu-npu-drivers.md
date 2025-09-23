@@ -41,3 +41,12 @@ sudo usermod -aG render $USER
 # Logout and Login or Restart
 
 ```
+
+### Test:
+
+```bash
+python3 -m venv ov-test-env
+source ov-test-env/bin/activate
+pip install openvino-genai
+benchmark_app -h
+```
