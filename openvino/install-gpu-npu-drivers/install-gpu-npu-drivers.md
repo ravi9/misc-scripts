@@ -45,6 +45,10 @@ sudo usermod -aG render $USER
 ### Test:
 
 ```bash
+dpkg -l | grep -i intel | grep -E 'igc|opencl|ocloc|igdgmm|level-zero'
+```
+
+```bash
 python3 -m venv ov-test-env
 source ov-test-env/bin/activate
 pip install openvino-genai
