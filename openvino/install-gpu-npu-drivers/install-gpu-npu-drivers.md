@@ -35,4 +35,9 @@ sudo apt install libtbb12 -y
 
 sudo dpkg -i *.deb
 
+sudo usermod -aG video $USER
+sudo usermod -aG render $USER
+
+# Logout and Login or Restart
+
 ```
