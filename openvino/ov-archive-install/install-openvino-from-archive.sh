@@ -102,9 +102,9 @@ echo "🎯 Setting up environment variables..."
 source "$OPENVINO_LINK_DIR/setupvars.sh"
 
 # --- VERIFY INSTALLATION ---
-echo "✅ Verifying installation..."
+echo "ℹ️  Verifying installation..."
 if [ -f "$OPENVINO_INSTALL_DIR/runtime/version.txt" ]; then
-    echo "✔️ OpenVINO installed successfully!"
+    echo "✅ OpenVINO installed successfully!"
     cat "$OPENVINO_INSTALL_DIR/runtime/version.txt"
 else
     echo "⚠️ Could not verify version. ${OPENVINO_INSTALL_DIR}/runtime/version.txt. Installation may be incomplete."
