@@ -1,5 +1,5 @@
 #!/bin/bash
-# Script to Install OpenVINO Runtime on Linux from an Archive File
+# Script to Install OpenVINO Runtime on Ubuntu from an Archive File
 # https://docs.openvino.ai/2025/get-started/install-openvino/install-openvino-archive-linux.html#install-openvino-runtime-on-linux-from-an-archive-file
 
 # === CONFIGURATION ===
