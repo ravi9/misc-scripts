@@ -69,8 +69,8 @@ OS_FULL=$( . /etc/os-release ; echo "${ID}${VERSION_ID}" )
 echo "Detected OS: ${OS_FULL}"
 
 # Download custom dependency installer only for Ubuntu 25.04
-if [ "$OS_FULL" == "ubuntu25.04" ]; then
-    echo "Downloading custom dependency installer for Ubuntu 25.04..."
+if [ "$OS_FULL" == "ubuntu25.04" ] || [ "$OS_FULL" == "ubuntu25.10" ]; then
+    echo "Downloading custom dependency installer for ${OS_FULL} ..."
     CUSTOM_INSTALLER_URL="https://raw.githubusercontent.com/ravi9/misc-scripts/main/openvino/ov-archive-install/install_openvino_dependencies.sh"
     ORIGINAL_INSTALLER="$OPENVINO_INSTALL_DIR/install_dependencies/install_openvino_dependencies.sh"
 
