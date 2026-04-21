@@ -74,7 +74,7 @@ if [ "$OS_FULL" == "ubuntu25.04" ] || [ "$OS_FULL" == "ubuntu25.10" ]; then
     CUSTOM_INSTALLER_URL="https://raw.githubusercontent.com/ravi9/misc-scripts/main/openvino/ov-archive-install/install_openvino_dependencies.sh"
     ORIGINAL_INSTALLER="$OPENVINO_INSTALL_DIR/install_dependencies/install_openvino_dependencies.sh"
 
-    if ! sudo wget -O "$ORIGINAL_INSTALLER" "$CUSTOM_INSTALLER_URL"; then
+    if ! sudo -E wget -O "$ORIGINAL_INSTALLER" "$CUSTOM_INSTALLER_URL"; then
         echo "❌ Failed to download custom dependency installer from:"
         echo "   $CUSTOM_INSTALLER_URL"
         exit 1
@@ -112,4 +112,6 @@ fi
 
 # --- FINAL MESSAGE ---
 echo "🎉 All done! OpenVINO ${OPENVINO_VERSION_MAJOR} is now active."
+echo
 echo "To use it in new terminals, run: source /opt/intel/openvino/setupvars.sh"
+echo
