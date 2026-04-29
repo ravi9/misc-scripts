@@ -4,13 +4,14 @@
 - https://github.com/intel/compute-runtime/releases 
 
 ```bash
-
 mkdir ~/gpu-npu-drivers
 cd ~/gpu-npu-drivers
 
 sudo apt update -y
 
 sudo apt install ocl-icd-libopencl1 -y
+sudo apt install libtbb12 -y
+sudo apt install clinfo -y
 
 # GPU driver v26.14.37833.4
 mkdir neo
@@ -40,26 +41,91 @@ sudo apt install ./intel-*.deb -y
 wget https://snapshot.ppa.launchpadcontent.net/kobuk-team/intel-graphics/ubuntu/20260324T100000Z/pool/main/l/level-zero-loader/libze1_1.27.0-1~24.04~ppa2_amd64.deb
 sudo apt install ./libze1_*.deb
 
-sudo apt install libtbb12 -y
+# If permissions are missing, add your user to the necessary groups:
+sudo usermod -aG render,video,accel $USER
 
-sudo dpkg -i *.deb
-
-sudo usermod -aG video $USER
-sudo usermod -aG render $USER
-
-# Logout and Login or Restart
+# Logout and Login
 
 ```
 
-### Test:
+## Validation and Testing:
 
+### GPU Verification Methods:
 ```bash
+
+# Option 1. Verify GPU hardware is detected by the PCI bus
+lspci -k | grep -A 3 -Ei "VGA|DISPLAY|3D"
+
+# Option 2. Verify GPU hardware is detected by the PCI bus
+# Look for "Kernel driver in use" to ensure it's bound to 'i915' or 'xe'.
+lspci -k | grep -A 3 -Ei "VGA|DISPLAY"
+# or using the common Intel address 00:02.0
+lspci -k -s 00:02.0
+
+# Option 3. Check if Intel Compute Runtime (OpenCL/Level Zero) libraries are installed
 dpkg -l | grep -i intel | grep -E 'igc|opencl|ocloc|igdgmm|level-zero'
+
+# Option 4. Confirm the OS has created the GPU render node
+# 'renderD128' is typically the node used for hardware acceleration and compute tasks.
+ls /dev/dri/render*
+
+# Option 5. Verify OpenCL can see the Intel Graphics hardware. Install: sudo apt install clinfo -y
+clinfo -l
+
+# Check if your user has permission to access the GPU (render group)
+groups | grep -E "render|video"
 ```
 
+### NPU Verification Methods:
 ```bash
+# Option 1. Verify NPU hardware is detected by the PCI bus
+lspci -k | grep -A 3 -i "NPU"
+
+# Option 2. Confirm the OS has created the NPU acceleration node
+ls /dev/accel/accel*
+
+# Check if your user has permission to access the NPU (accel group)
+# Note: On many systems, NPU access requires being in the 'accel' or 'render' group
+groups | grep -E "accel|render"
+```
+
+### OpenVINO Device Verification
+```bash
+# sudo apt install python3.12-venv -y
+
 python3 -m venv ov-test-env
 source ov-test-env/bin/activate
-pip install openvino-genai
-benchmark_app -h
+pip install openvino
+python -c "import openvino as ov; print(ov.Core().available_devices)"
+# Print with device id and full name
+python -c "import openvino as ov; core = ov.Core(); [print(f'Device: {d} - {core.get_property(d, \"FULL_DEVICE_NAME\")}') for d in core.available_devices]"
+```
+
+## Monitoring GPU, NPU utilization
+
+### Using nvtop
+```bash
+sudo snap install nvtop
+sudo snap connect nvtop:hardware-observe
+sudo snap connect nvtop:system-observe
+sudo nvtop
+```
+
+### Using intel_gpu_top
+```bash
+# Only for older Intel GPUs using  i915 drivers. For recent GPUs using xe drivers use nvtop
+sudo apt update && sudo apt install intel-gpu-tools
+sudo intel_gpu_top
+```
+
+### NPU utilization 
+```bash
+while true; do
+  OLD=$(cat /sys/class/accel/accel0/device/npu_busy_time_us)
+  sleep 1
+  NEW=$(cat /sys/class/accel/accel0/device/npu_busy_time_us)
+  DIFF=$(( (NEW - OLD) / 10000 ))
+  FREQ=$(cat /sys/class/accel/accel0/device/npu_current_frequency_mhz)
+  echo "NPU Load: $DIFF% | Current Freq: ${FREQ}MHz"
+done
 ```
