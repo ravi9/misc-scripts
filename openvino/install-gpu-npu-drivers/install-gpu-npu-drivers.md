@@ -34,8 +34,8 @@ cd npu-drivers
 wget https://github.com/intel/linux-npu-driver/releases/download/v1.32.1/linux-npu-driver-v1.32.1.20260422-24767473183-ubuntu2404.tar.gz
 tar -xf linux-npu-driver-v1.32.1.20260422-24767473183-ubuntu2404.tar.gz
 
-sudo apt update
-sudo apt install ./intel-*.deb
+sudo apt update -y
+sudo apt install ./intel-*.deb -y
 
 wget https://snapshot.ppa.launchpadcontent.net/kobuk-team/intel-graphics/ubuntu/20260324T100000Z/pool/main/l/level-zero-loader/libze1_1.27.0-1~24.04~ppa2_amd64.deb
 sudo apt install ./libze1_*.deb
