@@ -4,32 +4,41 @@
 - https://github.com/intel/compute-runtime/releases 
 
 ```bash
-mkdir ~/installers-drivers
-cd ~/installers-drivers
+
+mkdir ~/gpu-npu-drivers
+cd ~/gpu-npu-drivers
 
 sudo apt update -y
 
+sudo apt install ocl-icd-libopencl1 -y
+
+# GPU driver v26.14.37833.4
 mkdir neo
 cd neo
-wget https://github.com/intel/intel-graphics-compiler/releases/download/v2.18.5/intel-igc-core-2_2.18.5+19820_amd64.deb
-wget https://github.com/intel/intel-graphics-compiler/releases/download/v2.18.5/intel-igc-opencl-2_2.18.5+19820_amd64.deb
-wget https://github.com/intel/compute-runtime/releases/download/25.35.35096.9/intel-ocloc-dbgsym_25.35.35096.9-0_amd64.ddeb
-wget https://github.com/intel/compute-runtime/releases/download/25.35.35096.9/intel-ocloc_25.35.35096.9-0_amd64.deb
-wget https://github.com/intel/compute-runtime/releases/download/25.35.35096.9/intel-opencl-icd-dbgsym_25.35.35096.9-0_amd64.ddeb
-wget https://github.com/intel/compute-runtime/releases/download/25.35.35096.9/intel-opencl-icd_25.35.35096.9-0_amd64.deb
-wget https://github.com/intel/compute-runtime/releases/download/25.35.35096.9/libigdgmm12_22.8.1_amd64.deb
-wget https://github.com/intel/compute-runtime/releases/download/25.35.35096.9/libze-intel-gpu1-dbgsym_25.35.35096.9-0_amd64.ddeb
-wget https://github.com/intel/compute-runtime/releases/download/25.35.35096.9/libze-intel-gpu1_25.35.35096.9-0_amd64.deb
-
-sudo apt install ocl-icd-libopencl1 -y
+wget https://github.com/intel/intel-graphics-compiler/releases/download/v2.32.7/intel-igc-core-2_2.32.7+21184_amd64.deb
+wget https://github.com/intel/intel-graphics-compiler/releases/download/v2.32.7/intel-igc-opencl-2_2.32.7+21184_amd64.deb
+wget https://github.com/intel/compute-runtime/releases/download/26.14.37833.4/intel-ocloc-dbgsym_26.14.37833.4-0_amd64.ddeb
+wget https://github.com/intel/compute-runtime/releases/download/26.14.37833.4/intel-ocloc_26.14.37833.4-0_amd64.deb
+wget https://github.com/intel/compute-runtime/releases/download/26.14.37833.4/intel-opencl-icd-dbgsym_26.14.37833.4-0_amd64.ddeb
+wget https://github.com/intel/compute-runtime/releases/download/26.14.37833.4/intel-opencl-icd_26.14.37833.4-0_amd64.deb
+wget https://github.com/intel/compute-runtime/releases/download/26.14.37833.4/libigdgmm12_22.9.0_amd64.deb
+wget https://github.com/intel/compute-runtime/releases/download/26.14.37833.4/libze-intel-gpu1-dbgsym_26.14.37833.4-0_amd64.ddeb
+wget https://github.com/intel/compute-runtime/releases/download/26.14.37833.4/libze-intel-gpu1_26.14.37833.4-0_amd64.deb
 
 sudo dpkg -i *.deb
 
-# NPU
-mkdir npu 
-cd npu
-wget https://github.com/intel/linux-npu-driver/releases/download/v1.23.0/linux-npu-driver-v1.23.0.20250827-17270089246-ubuntu2404.tar.gz
-tar -xf linux-npu-driver-v1.23.0.20250827-17270089246-ubuntu2404.tar.gz
+# NPU v1.32.1
+mkdir npu-drivers
+cd npu-drivers
+
+wget https://github.com/intel/linux-npu-driver/releases/download/v1.32.1/linux-npu-driver-v1.32.1.20260422-24767473183-ubuntu2404.tar.gz
+tar -xf linux-npu-driver-v1.32.1.20260422-24767473183-ubuntu2404.tar.gz
+
+sudo apt update
+sudo apt install ./intel-*.deb
+
+wget https://snapshot.ppa.launchpadcontent.net/kobuk-team/intel-graphics/ubuntu/20260324T100000Z/pool/main/l/level-zero-loader/libze1_1.27.0-1~24.04~ppa2_amd64.deb
+sudo apt install ./libze1_*.deb
 
 sudo apt install libtbb12 -y
 
