@@ -118,6 +118,16 @@ sudo apt update && sudo apt install intel-gpu-tools
 sudo intel_gpu_top
 ```
 
+### Using bash script
+```bash
+while true; do
+  FREQ=$(cat /sys/class/drm/card0/device/tile0/gt0/freq0/cur_freq)
+  MEM=$(free -m | awk '/Mem:/ {print $3}')
+  printf "\rGPU Freq: %4sMHz | System Mem Used: %5sMB" "$FREQ" "$MEM"
+  sleep 1
+done
+```
+
 ### NPU utilization 
 ```bash
 while true; do
@@ -125,7 +135,8 @@ while true; do
   sleep 1
   NEW=$(cat /sys/class/accel/accel0/device/npu_busy_time_us)
   DIFF=$(( (NEW - OLD) / 10000 ))
+  MEM=$(cat /sys/class/accel/accel0/device/npu_memory_utilization)
   FREQ=$(cat /sys/class/accel/accel0/device/npu_current_frequency_mhz)
-  echo "NPU Load: $DIFF% | Current Freq: ${FREQ}MHz"
+  printf "\rNPU Load: %3d%% | Mem: %4sMB | Freq: %4sMHz" "$DIFF" "$MEM" "$FREQ"
 done
 ```
