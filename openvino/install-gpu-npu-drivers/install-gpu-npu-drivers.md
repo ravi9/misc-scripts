@@ -29,6 +29,7 @@ wget https://github.com/intel/compute-runtime/releases/download/26.18.38308.1/li
 sudo dpkg -i *.deb
 
 # NPU v1.32.1
+cd ~/gpu-npu-drivers
 mkdir npu-drivers
 cd npu-drivers
 
