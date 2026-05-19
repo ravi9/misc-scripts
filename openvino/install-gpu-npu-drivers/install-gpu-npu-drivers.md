@@ -4,6 +4,18 @@
 - https://github.com/intel/compute-runtime/releases 
 
 ```bash
+# Check kernel version
+uname -a
+
+# Recommended kernel is 6.17.0-20-generic and OS is Ubuntu 24.04 LTS
+# Install 6.17.0-20-generic kernel
+sudo apt install linux-image-6.17.0-20-generic linux-headers-6.17.0-20-generic linux-modules-extra-6.17.0-20-generic
+sudo apt install linux-generic-hwe-24.04
+sudo reboot
+```
+
+- Install Script: 
+```bash
 mkdir ~/gpu-npu-drivers
 cd ~/gpu-npu-drivers
 
@@ -28,6 +40,8 @@ wget https://github.com/intel/compute-runtime/releases/download/26.18.38308.1/li
 
 sudo dpkg -i *.deb
 
+sudo apt-get install -f -y  # Fixes missing foundational dependencies
+
 # NPU v1.32.1
 cd ~/gpu-npu-drivers
 mkdir npu-drivers
@@ -42,8 +56,11 @@ sudo apt install ./intel-*.deb -y
 wget https://snapshot.ppa.launchpadcontent.net/kobuk-team/intel-graphics/ubuntu/20260324T100000Z/pool/main/l/level-zero-loader/libze1_1.27.0-1~24.04~ppa2_amd64.deb
 sudo apt install ./libze1_*.deb
 
+# Force overwrite the old system level-zero file if above fails.
+sudo dpkg -i --force-overwrite ./libze1_*.deb
+
 # If permissions are missing, add your user to the necessary groups:
-sudo usermod -aG render,video,accel $USER
+sudo usermod -aG render,video $USER
 
 # Logout and Login
 
