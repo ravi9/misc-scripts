@@ -7,14 +7,15 @@
 # Check kernel version
 uname -a
 
-# Recommended kernel is 6.17.0-20-generic and OS is Ubuntu 24.04 LTS
-# Install 6.17.0-20-generic kernel
+# Recommended kernel is 6.17.0-20-generic or above and OS is Ubuntu 24.04 LTS
+# Install atleast 6.17.0-20-generic kernel if needed
 sudo apt install linux-image-6.17.0-20-generic linux-headers-6.17.0-20-generic linux-modules-extra-6.17.0-20-generic
 sudo apt install linux-generic-hwe-24.04
 sudo reboot
 
 sudo apt update -y
 sudo apt upgrade -y
+sudo reboot
 ```
 
 - Install Script: 
