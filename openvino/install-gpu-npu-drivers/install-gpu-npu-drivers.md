@@ -12,6 +12,9 @@ uname -a
 sudo apt install linux-image-6.17.0-20-generic linux-headers-6.17.0-20-generic linux-modules-extra-6.17.0-20-generic
 sudo apt install linux-generic-hwe-24.04
 sudo reboot
+
+sudo apt update -y
+sudo apt upgrade -y
 ```
 
 - Install Script: 
