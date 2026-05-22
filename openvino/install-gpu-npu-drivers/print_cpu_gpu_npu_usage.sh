@@ -1,7 +1,10 @@
 #!/bin/bash
 
-# --- Setup: Find GPU Paths ---
+# Usage: 
+# wget https://raw.githubusercontent.com/ravi9/misc-scripts/refs/heads/main/openvino/install-gpu-npu-drivers/print_cpu_gpu_npu_usage.sh
+# bash print_cpu_gpu_npu_usage.sh
 
+# --- Setup: Find GPU Paths ---
 # 1. Find GPU Utilization Path
 # For xe driver: use gtidle/idle_residency_ms (busy = 100% - idle%)
 # For i915 driver: use engine/rcs0/busy_time_ns
