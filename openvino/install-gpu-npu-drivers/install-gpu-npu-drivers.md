@@ -130,6 +130,25 @@ groups | grep -E "accel|render"
 
 ### Using bash script
 - Monitor CPU, GPU, NPU, and memory usage with [print_cpu_gpu_npu_usage.sh](https://github.com/ravi9/misc-scripts/blob/main/openvino/install-gpu-npu-drivers/print_cpu_gpu_npu_usage.sh).
+```console
+$ bash print_cpu_gpu_npu_util.sh 
+=========================================
+ System Monitor
+-----------------------------------------
+ CPU: Intel(R) Core(TM) Ultra 5 236V (8 cores)
+ GPU: Intel Corporation Lunar Lake [Intel Graphics] (rev 04) (driver: xe_idle)
+ RAM: 15 GB
+=========================================
+-------------------------------------------
+          util      freq    avg  avg freq
+CPU:       2%    521 MHz     7%   1567 MHz
+GPU:       0%    750 MHz    25%   1412 MHz
+NPU:       0%      0 MHz     0%      0 MHz
+NPU Mem:  0.1 GB
+Sys Mem:  2.1 GB / 15 GB  (samples: 45)
+-------------------------------------------
+
+```
 
 ### Using nvtop
 ```bash
