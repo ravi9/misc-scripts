@@ -2,6 +2,8 @@
 
 - https://github.com/intel/linux-npu-driver/releases
 - https://github.com/intel/compute-runtime/releases 
+---
+### Verify Kernel version
 
 ```bash
 # Check kernel version
@@ -17,8 +19,9 @@ sudo apt update -y
 sudo apt upgrade -y
 sudo reboot
 ```
+---
+### Intel GPU and NPU Drivers Install Script: 
 
-- Install Script: 
 ```bash
 mkdir ~/gpu-npu-drivers
 cd ~/gpu-npu-drivers
@@ -69,12 +72,11 @@ sudo usermod -aG render,video $USER
 # Logout and Login
 
 ```
+---
+### Validation and Testing:
 
-## Validation and Testing:
-
-### GPU Verification Methods:
+#### GPU Verification Methods:
 ```bash
-
 # Option 1. Verify GPU hardware is detected by the PCI bus
 lspci -k | grep -A 3 -Ei "VGA|DISPLAY|3D"
 
@@ -98,7 +100,7 @@ clinfo -l
 groups | grep -E "render|video"
 ```
 
-### NPU Verification Methods:
+#### NPU Verification Methods:
 ```bash
 # Option 1. Verify NPU hardware is detected by the PCI bus
 lspci -k | grep -A 3 -i "NPU"
@@ -110,7 +112,7 @@ ls /dev/accel/accel*
 # Note: On many systems, NPU access requires being in the 'accel' or 'render' group
 groups | grep -E "accel|render"
 ```
-
+---
 ### OpenVINO Device Verification
 ```bash
 # sudo apt install python3.12-venv -y
@@ -122,8 +124,11 @@ python -c "import openvino as ov; print(ov.Core().available_devices)"
 # Print with device id and full name
 python -c "import openvino as ov; core = ov.Core(); [print(f'Device: {d} - {core.get_property(d, \"FULL_DEVICE_NAME\")}') for d in core.available_devices]"
 ```
+---
+### Monitoring GPU, NPU utilization
 
-## Monitoring GPU, NPU utilization
+### Using bash script
+- Monitor CPU, GPU, NPU, and memory usage with [print_cpu_gpu_npu_usage.sh](https://github.com/ravi9/misc-scripts/blob/main/openvino/install-gpu-npu-drivers/print_cpu_gpu_npu_usage.sh).
 
 ### Using nvtop
 ```bash
@@ -140,7 +145,9 @@ sudo apt update && sudo apt install intel-gpu-tools
 sudo intel_gpu_top
 ```
 
-### Using bash script
+### Using Command line snippets
+Paste it directly in the terminal !
+- GPU utilization
 ```bash
 while true; do
   FREQ=$(cat /sys/class/drm/card0/device/tile0/gt0/freq0/cur_freq)
@@ -150,15 +157,19 @@ while true; do
 done
 ```
 
-### NPU utilization 
+- NPU utilization 
 ```bash
 while true; do
   OLD=$(cat /sys/class/accel/accel0/device/npu_busy_time_us)
   sleep 1
   NEW=$(cat /sys/class/accel/accel0/device/npu_busy_time_us)
-  DIFF=$(( (NEW - OLD) / 10000 ))
-  MEM=$(cat /sys/class/accel/accel0/device/npu_memory_utilization)
+  LOAD=$(( (NEW - OLD) / 10000 ))
   FREQ=$(cat /sys/class/accel/accel0/device/npu_current_frequency_mhz)
-  printf "\rNPU Load: %3d%% | Mem: %4sMB | Freq: %4sMHz" "$DIFF" "$MEM" "$FREQ"
+  MEM_GB=$(awk '{printf "%.1f", $1/1024/1024/1024}' /sys/class/accel/accel0/device/npu_memory_utilization)
+  # System Memory
+  read T A < <(awk '/MemTotal/{t=$2} /MemAvailable/{a=$2} END{print t" "a}' /proc/meminfo)
+  USED_GB=$(awk "BEGIN {printf \"%.1f\", ($T - $A)/1024/1024}")
+  TOT_GB=$(awk "BEGIN {printf \"%.0f\", $T/1024/1024}")
+  printf "\rNPU: %3d%% @ %4s MHz (%4s GB) | Sys Mem: %4s GB / %2s GB" "$LOAD" "$FREQ" "$MEM_GB" "$USED_GB" "$TOT_GB"
 done
 ```
