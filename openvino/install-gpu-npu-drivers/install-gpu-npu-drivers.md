@@ -75,6 +75,18 @@ sudo usermod -aG render,video $USER
 ---
 ### Validation and Testing:
 
+#### Intel Devices Discovery with OpenVINO
+```bash
+# sudo apt install python3.12-venv -y
+
+python3 -m venv ov-test-env
+source ov-test-env/bin/activate
+pip install openvino
+python -c "import openvino as ov; print(ov.Core().available_devices)"
+# Print with device id and full name
+python -c "import openvino as ov; core = ov.Core(); [print(f'Device: {d} - {core.get_property(d, \"FULL_DEVICE_NAME\")}') for d in core.available_devices]"
+```
+---
 #### GPU Verification Methods:
 ```bash
 # Option 1. Verify GPU hardware is detected by the PCI bus
@@ -112,18 +124,7 @@ ls /dev/accel/accel*
 # Note: On many systems, NPU access requires being in the 'accel' or 'render' group
 groups | grep -E "accel|render"
 ```
----
-### OpenVINO Device Verification
-```bash
-# sudo apt install python3.12-venv -y
 
-python3 -m venv ov-test-env
-source ov-test-env/bin/activate
-pip install openvino
-python -c "import openvino as ov; print(ov.Core().available_devices)"
-# Print with device id and full name
-python -c "import openvino as ov; core = ov.Core(); [print(f'Device: {d} - {core.get_property(d, \"FULL_DEVICE_NAME\")}') for d in core.available_devices]"
-```
 ---
 ### Monitoring GPU, NPU utilization
 
@@ -147,18 +148,51 @@ sudo intel_gpu_top
 
 ### Using Command line snippets
 Paste it directly in the terminal !
-- GPU utilization
+- Xe GPU utilization
 ```bash
+IDLE_PATH="/sys/class/drm/card0/device/tile0/gt0/gtidle/idle_residency_ms"
+FREQ_PATH="/sys/class/drm/card0/device/tile0/gt0/freq0/cur_freq"
+echo "---------------------------------"
 while true; do
-  FREQ=$(cat /sys/class/drm/card0/device/tile0/gt0/freq0/cur_freq)
-  MEM=$(free -m | awk '/Mem:/ {print $3}')
-  printf "\rGPU Freq: %4sMHz | System Mem Used: %5sMB" "$FREQ" "$MEM"
+  OLD=$(cat "$IDLE_PATH" 2>/dev/null || echo 0)
   sleep 1
+  NEW=$(cat "$IDLE_PATH" 2>/dev/null || echo 0)
+  # Calc Load: 100% - (Delta_Idle_ms / 1000ms * 100)
+  IDLE_PCT=$(( (NEW - OLD) / 10 ))
+  LOAD=$(( 100 - IDLE_PCT ))
+  [[ $LOAD -lt 0 ]] && LOAD=0
+  
+  FREQ=$(cat "$FREQ_PATH" 2>/dev/null || echo "N/A")
+  read T A < <(awk '/MemTotal/{t=$2} /MemAvailable/{a=$2} END{print t" "a}' /proc/meminfo)
+  USED_GB=$(awk "BEGIN {printf \"%.1f\", ($T - $A)/1024/1024}")
+  TOT_GB=$(awk "BEGIN {printf \"%.0f\", $T/1024/1024}")
+  printf "\rGPU (xe): %3d%% @ %4s MHz | Sys Mem: %4s GB / %2s GB" "$LOAD" "$FREQ" "$USED_GB" "$TOT_GB"
+done
+```
+
+- i915 driver - Older Intel GPUs
+```bash
+BUSY_PATH="/sys/class/drm/card0/engine/rcs0/busy_time_ns"
+FREQ_PATH="/sys/class/drm/card0/gt_cur_freq_mhz"
+echo "---------------------------------"
+while true; do
+  OLD=$(cat "$BUSY_PATH" 2>/dev/null || echo 0)
+  sleep 1
+  NEW=$(cat "$BUSY_PATH" 2>/dev/null || echo 0)
+  # Calc Load: (Delta_ns / 1s_ns) * 100
+  LOAD=$(( (NEW - OLD) / 10000000 ))
+  
+  FREQ=$(cat "$FREQ_PATH" 2>/dev/null || echo "N/A")
+  read T A < <(awk '/MemTotal/{t=$2} /MemAvailable/{a=$2} END{print t" "a}' /proc/meminfo)
+  USED_GB=$(awk "BEGIN {printf \"%.1f\", ($T - $A)/1024/1024}")
+  TOT_GB=$(awk "BEGIN {printf \"%.0f\", $T/1024/1024}")
+  printf "\rGPU (i915): %3d%% @ %4s MHz | Sys Mem: %4s GB / %2s GB" "$LOAD" "$FREQ" "$USED_GB" "$TOT_GB"
 done
 ```
 
 - NPU utilization 
 ```bash
+echo "---------------------------------"
 while true; do
   OLD=$(cat /sys/class/accel/accel0/device/npu_busy_time_us)
   sleep 1
@@ -166,7 +200,6 @@ while true; do
   LOAD=$(( (NEW - OLD) / 10000 ))
   FREQ=$(cat /sys/class/accel/accel0/device/npu_current_frequency_mhz)
   MEM_GB=$(awk '{printf "%.1f", $1/1024/1024/1024}' /sys/class/accel/accel0/device/npu_memory_utilization)
-  # System Memory
   read T A < <(awk '/MemTotal/{t=$2} /MemAvailable/{a=$2} END{print t" "a}' /proc/meminfo)
   USED_GB=$(awk "BEGIN {printf \"%.1f\", ($T - $A)/1024/1024}")
   TOT_GB=$(awk "BEGIN {printf \"%.0f\", $T/1024/1024}")
