@@ -72,6 +72,22 @@ sudo usermod -aG render,video $USER
 # Logout and Login
 
 ```
+#### Verify Driver versions
+```bash
+dpkg -l | grep -i intel | grep -E 'igc|opencl|ocloc|igdgmm|level-zero|gpu'
+```
+Sample Output:
+```console
+$ dpkg -l | grep -i intel | grep -E 'igc|opencl|ocloc|igdgmm|level-zero|gpu'
+ii  intel-gpu-tools                               1.28-1ubuntu2                            amd64        tools for debugging the Intel graphics driver
+ii  intel-igc-core-2                              2.28.4                                   amd64        Intel(R) Graphics Compiler for OpenCL(TM)
+ii  intel-igc-opencl-2                            2.28.4                                   amd64        Intel(R) Graphics Compiler for OpenCL(TM)
+ii  intel-level-zero-npu                          1.30.0.20260311-22963593310~ubuntu24.04  amd64        Intel(R) Level Zero Driver for NPU hardware
+ii  intel-ocloc                                   26.05.37020.3-0                          amd64        Tool for managing Intel Compute GPU device binary format
+ii  intel-opencl-icd                              26.05.37020.3-0                          amd64        Intel graphics compute runtime for OpenCL
+ii  libigdgmm12:amd64                             22.9.0                                   amd64        Intel Graphics Memory Management Library -- shared library
+ii  libze-intel-gpu1                              26.05.37020.3-0                          amd64        Intel(R) Graphics Compute Runtime for oneAPI Level Zero.
+```
 ---
 ### Validation and Testing:
 
@@ -135,6 +151,40 @@ $ bash print_cpu_gpu_npu_util.sh
 =========================================
  System Monitor
 -----------------------------------------
+ OS:  Ubuntu 24.04.4 LTS | Kernel: 6.17.0-20-generic
+-----------------------------------------
+ CPU: Intel(R) Core(TM) Ultra 5 236V
+      Cores: 8 | Threads/Core: 1 | Max Clock: 4700 MHz
+      L3 Cache: 8 MiB (1 instance)
+ GPU: Intel(R) Arc(TM) Graphics
+      Xe Cores: 7 | EUs: 56 | Vec Engines: 112
+      Max Clock: 1850 MHz | Memory: 13.92GiB
+ NPU: Intel Corporation Lunar Lake NPU (rev 04)
+      Max Clock: 1950 MHz
+ RAM: 15 GB
+-----------------------------------------
+ Driver Versions:
+      Intel(R) Graphics Compiler for OpenCL(TM)          intel-igc-core-2       2.28.4
+      Intel graphics compute runtime for OpenCL          intel-opencl-icd       26.05.37020.3-0
+      Intel(R) Graphics Compute Runtime for oneAPI Level Zero. libze-intel-gpu1       26.05.37020.3-0
+      Intel(R) Level Zero Driver for NPU hardware        intel-level-zero-npu   1.30.0.20260311-22963593310~ubuntu24.04
+=========================================
+-------------------------------------------
+          util      freq    avg  avg freq
+CPU:       0%    530 MHz     1%    544 MHz
+GPU:       0%    750 MHz     0%    750 MHz
+NPU:       0%      0 MHz     0%      0 MHz
+NPU Mem:  0.1 GB
+Sys Mem:  2.2 GB / 15 GB  [1s interval, 32 samples]
+-------------------------------------------
+```
+
+- Monitor CPU, GPU, NPU, and memory usage with [print_v1_cpu_gpu_npu_usage.sh](https://github.com/ravi9/misc-scripts/blob/main/openvino/install-gpu-npu-drivers/print_v1_cpu_gpu_npu_usage.sh).
+```console
+$ bash print_v1_cpu_gpu_npu_util.sh 
+=========================================
+ System Monitor
+-----------------------------------------
  CPU: Intel(R) Core(TM) Ultra 5 236V (8 cores)
  GPU: Intel Corporation Lunar Lake [Intel Graphics] (rev 04) (driver: xe_idle)
  RAM: 15 GB
@@ -147,7 +197,6 @@ NPU:       0%      0 MHz     0%      0 MHz
 NPU Mem:  0.1 GB
 Sys Mem:  2.1 GB / 15 GB  (samples: 45)
 -------------------------------------------
-
 ```
 
 ### Using nvtop
