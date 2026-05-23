@@ -8,7 +8,7 @@
 #   - sudo access    (GPU topology from debugfs)
 #
 # Usage:
-#   bash print_cpu_gpu_npu_util.sh
+#   bash print_cpu_gpu_npu_usage.sh
 #   Press Ctrl+C to stop.
 #
 
