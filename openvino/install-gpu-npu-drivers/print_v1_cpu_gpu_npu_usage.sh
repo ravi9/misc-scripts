@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Usage: 
-# wget https://raw.githubusercontent.com/ravi9/misc-scripts/refs/heads/main/openvino/install-gpu-npu-drivers/print_cpu_gpu_npu_usage.sh
+# wget https://raw.githubusercontent.com/ravi9/misc-scripts/refs/heads/main/openvino/install-gpu-npu-drivers/print_v1_cpu_gpu_npu_usage.sh
 # bash print_cpu_gpu_npu_usage.sh
 
 # --- Setup: Find GPU Paths ---
