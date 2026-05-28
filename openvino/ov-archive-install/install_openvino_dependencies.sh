@@ -139,8 +139,8 @@ elif [ "$os" == "ubuntu18.04" ] ; then
 
 elif [ "$os" == "ubuntu20.04" ] || [ "$os" == "debian10" ] || [ "$os" == "raspbian10" ] ||
      [ "$os" == "ubuntu21.10" ] || [ "$os" == "ubuntu22.04" ] || [ "$os" == "debian11" ] || [ "$os" == "raspbian11" ] ||
-     [ "$os" == "ubuntu22.10" ] || [ "$os" == "ubuntu23.04" ] || [ "$os" == "ubuntu24.04" ] || 
-     [ "$os" == "ubuntu25.04" ] || [ "$os" == "ubuntu25.10" ] || [ "$os" == "debian12" ] || [ "$os" == "raspbian12" ]; then
+    [ "$os" == "ubuntu22.10" ] || [ "$os" == "ubuntu23.04" ] || [ "$os" == "ubuntu24.04" ] ||
+    [ "$os" == "ubuntu25.04" ] || [ "$os" == "ubuntu25.10" ] || [ "$os" == "debian12" ] || [ "$os" == "raspbian12" ]; then
 
     pkgs_gpu=(ocl-icd-libopencl1)
     pkgs_python=(python3 python3-venv python3-pip)
