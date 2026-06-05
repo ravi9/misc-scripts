@@ -8,24 +8,45 @@
 #   - sudo access    (GPU topology from debugfs)
 #
 # Usage:
-#   wget https://raw.githubusercontent.com/ravi9/misc-scripts/refs/heads/main/openvino/install-gpu-npu-drivers/print_cpu_gpu_npu_usage.sh
-#   bash print_cpu_gpu_npu_usage.sh
+#   bash print_cpu_gpu_npu_util.sh
 #   Press Ctrl+C to stop.
 #
 
 # --- Setup: Find GPU Paths ---
+
+# 0. Find the DRM card for the Intel GPU (card0, card1, ...).
+# Some systems don't expose card0; iterate and pick the first card that has
+# either the xe (tile0/gt0) or i915 (engine/rcs0) sysfs layout.
+GPU_CARD=""
+GPU_CARD_NUM=""
+for card_path in /sys/class/drm/card*; do
+    [[ -d "$card_path" ]] || continue
+    card_name=$(basename "$card_path")
+    # Skip connector entries like card1-DP-1
+    [[ "$card_name" =~ ^card[0-9]+$ ]] || continue
+    if [[ -f "${card_path}/device/tile0/gt0/gtidle/idle_residency_ms" ]] \
+       || compgen -G "${card_path}/engine/rcs0" > /dev/null \
+       || [[ -f "${card_path}/gt_cur_freq_mhz" ]]; then
+        GPU_CARD="$card_name"
+        GPU_CARD_NUM="${card_name#card}"
+        break
+    fi
+done
 
 # 1. Find GPU Utilization Path
 # For xe driver: use gtidle/idle_residency_ms (busy = 100% - idle%)
 # For i915 driver: use engine/rcs0/busy_time_ns
 GPU_METHOD=""
 GPU_ENGINE_PATH=""
-GPU_IDLE_PATH="/sys/class/drm/card0/device/tile0/gt0/gtidle/idle_residency_ms"
+GPU_IDLE_PATH=""
+if [[ -n "$GPU_CARD" ]]; then
+    GPU_IDLE_PATH="/sys/class/drm/${GPU_CARD}/device/tile0/gt0/gtidle/idle_residency_ms"
+fi
 
-if [[ -f "$GPU_IDLE_PATH" ]]; then
+if [[ -n "$GPU_IDLE_PATH" && -f "$GPU_IDLE_PATH" ]]; then
     GPU_METHOD="xe_idle"
-else
-    for path in /sys/class/drm/card0/engine/*/; do
+elif [[ -n "$GPU_CARD" ]]; then
+    for path in /sys/class/drm/${GPU_CARD}/engine/*/; do
         if [[ -f "${path}busy_time_ns" && "$path" == *"rcs0"* ]]; then
             GPU_ENGINE_PATH="${path}busy_time_ns"
             GPU_METHOD="i915_engine"
@@ -36,10 +57,12 @@ fi
 
 # 2. Find GPU Frequency Path
 GPU_FREQ_PATH=""
-if [ -f /sys/class/drm/card0/device/tile0/gt0/freq0/cur_freq ]; then
-    GPU_FREQ_PATH="/sys/class/drm/card0/device/tile0/gt0/freq0/cur_freq"
-elif [ -f /sys/class/drm/card0/gt_cur_freq_mhz ]; then
-    GPU_FREQ_PATH="/sys/class/drm/card0/gt_cur_freq_mhz"
+if [[ -n "$GPU_CARD" ]]; then
+    if [ -f /sys/class/drm/${GPU_CARD}/device/tile0/gt0/freq0/cur_freq ]; then
+        GPU_FREQ_PATH="/sys/class/drm/${GPU_CARD}/device/tile0/gt0/freq0/cur_freq"
+    elif [ -f /sys/class/drm/${GPU_CARD}/gt_cur_freq_mhz ]; then
+        GPU_FREQ_PATH="/sys/class/drm/${GPU_CARD}/gt_cur_freq_mhz"
+    fi
 fi
 
 # Helper function for CPU stats
@@ -83,7 +106,8 @@ CPU_MAX_MHZ=$(lscpu | awk -F: '/CPU max MHz/{gsub(/^[ \t]+|\.0+$/,"",$2); print 
 CPU_THREADS=$(lscpu | awk -F: '/Thread\(s\) per core/{gsub(/^[ \t]+/,"",$2); print $2}')
 CPU_CACHE=$(lscpu | awk -F: '/L3 cache/{gsub(/^[ \t]+/,"",$2); print $2}')
 SYS_MEM_GB=$(awk '/MemTotal/{printf "%.0f", $2/1024/1024}' /proc/meminfo)
-GPU_MAX_FREQ=$(cat /sys/class/drm/card0/device/tile0/gt0/freq0/max_freq 2>/dev/null || echo "N/A")
+GPU_MAX_FREQ="N/A"
+[[ -n "$GPU_CARD" ]] && GPU_MAX_FREQ=$(cat /sys/class/drm/${GPU_CARD}/device/tile0/gt0/freq0/max_freq 2>/dev/null || echo "N/A")
 NPU_MAX_FREQ=$(cat /sys/class/accel/accel0/device/npu_max_frequency_mhz 2>/dev/null || echo "N/A")
 
 # OS info
@@ -110,7 +134,8 @@ count_bits() {
 }
 
 # Derive Xe Cores and Vector Engines from topology (requires root)
-GPU_TOPO=$(sudo cat /sys/kernel/debug/dri/0/gt0/topology 2>/dev/null)
+GPU_TOPO=""
+[[ -n "$GPU_CARD_NUM" ]] && GPU_TOPO=$(sudo cat /sys/kernel/debug/dri/${GPU_CARD_NUM}/gt0/topology 2>/dev/null)
 if [[ -n "$GPU_TOPO" ]]; then
     GEOM_HEX=$(echo "$GPU_TOPO" | awk '/dss mask \(geometry\)/{gsub(/,/,"",$NF); print $NF}')
     XE_CORES=$(count_bits "$GEOM_HEX")

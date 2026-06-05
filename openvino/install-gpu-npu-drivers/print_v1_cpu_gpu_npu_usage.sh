@@ -5,17 +5,40 @@
 # bash print_cpu_gpu_npu_usage.sh
 
 # --- Setup: Find GPU Paths ---
+
+# 0. Find the DRM card for the Intel GPU (card0, card1, ...).
+# Some systems don't expose card0; iterate and pick the first card that has
+# either the xe (tile0/gt0) or i915 (engine/rcs0) sysfs layout.
+GPU_CARD=""
+GPU_CARD_NUM=""
+for card_path in /sys/class/drm/card*; do
+    [[ -d "$card_path" ]] || continue
+    card_name=$(basename "$card_path")
+    # Skip connector entries like card1-DP-1
+    [[ "$card_name" =~ ^card[0-9]+$ ]] || continue
+    if [[ -f "${card_path}/device/tile0/gt0/gtidle/idle_residency_ms" ]] \
+       || compgen -G "${card_path}/engine/rcs0" > /dev/null \
+       || [[ -f "${card_path}/gt_cur_freq_mhz" ]]; then
+        GPU_CARD="$card_name"
+        GPU_CARD_NUM="${card_name#card}"
+        break
+    fi
+done
+
 # 1. Find GPU Utilization Path
 # For xe driver: use gtidle/idle_residency_ms (busy = 100% - idle%)
 # For i915 driver: use engine/rcs0/busy_time_ns
 GPU_METHOD=""
 GPU_ENGINE_PATH=""
-GPU_IDLE_PATH="/sys/class/drm/card0/device/tile0/gt0/gtidle/idle_residency_ms"
+GPU_IDLE_PATH=""
+if [[ -n "$GPU_CARD" ]]; then
+    GPU_IDLE_PATH="/sys/class/drm/${GPU_CARD}/device/tile0/gt0/gtidle/idle_residency_ms"
+fi
 
-if [[ -f "$GPU_IDLE_PATH" ]]; then
+if [[ -n "$GPU_IDLE_PATH" && -f "$GPU_IDLE_PATH" ]]; then
     GPU_METHOD="xe_idle"
-else
-    for path in /sys/class/drm/card0/engine/*/; do
+elif [[ -n "$GPU_CARD" ]]; then
+    for path in /sys/class/drm/${GPU_CARD}/engine/*/; do
         if [[ -f "${path}busy_time_ns" && "$path" == *"rcs0"* ]]; then
             GPU_ENGINE_PATH="${path}busy_time_ns"
             GPU_METHOD="i915_engine"
@@ -26,10 +49,12 @@ fi
 
 # 2. Find GPU Frequency Path
 GPU_FREQ_PATH=""
-if [ -f /sys/class/drm/card0/device/tile0/gt0/freq0/cur_freq ]; then
-    GPU_FREQ_PATH="/sys/class/drm/card0/device/tile0/gt0/freq0/cur_freq"
-elif [ -f /sys/class/drm/card0/gt_cur_freq_mhz ]; then
-    GPU_FREQ_PATH="/sys/class/drm/card0/gt_cur_freq_mhz"
+if [[ -n "$GPU_CARD" ]]; then
+    if [ -f /sys/class/drm/${GPU_CARD}/device/tile0/gt0/freq0/cur_freq ]; then
+        GPU_FREQ_PATH="/sys/class/drm/${GPU_CARD}/device/tile0/gt0/freq0/cur_freq"
+    elif [ -f /sys/class/drm/${GPU_CARD}/gt_cur_freq_mhz ]; then
+        GPU_FREQ_PATH="/sys/class/drm/${GPU_CARD}/gt_cur_freq_mhz"
+    fi
 fi
 
 # Helper function for CPU stats
@@ -71,12 +96,22 @@ GPU_MODEL=$(lspci | awk -F: '/VGA/{gsub(/^[ \t]+/,"",$3); print $3}')
 NUM_CORES=$(nproc)
 SYS_MEM_GB=$(awk '/MemTotal/{printf "%.0f", $2/1024/1024}' /proc/meminfo)
 
+# Installed Intel GPU/NPU driver versions (GPU first, then NPU)
+INTEL_PKGS=$(
+    dpkg-query -W -f '${binary:Summary}|${Package}|${Version}\n' intel-igc-core-2 libze-intel-gpu1 intel-opencl-icd 2>/dev/null
+    dpkg-query -W -f '${binary:Summary}|${Package}|${Version}\n' intel-level-zero-npu 2>/dev/null
+)
+INTEL_PKGS=$(echo "$INTEL_PKGS" | awk -F'|' '{printf "      %-50s %-22s %s\n", $1, $2, $3}')
+
 echo "========================================="
 echo " System Monitor"
 echo "-----------------------------------------"
 echo " CPU: $CPU_MODEL (${NUM_CORES} cores)"
 echo " GPU: $GPU_MODEL (driver: ${GPU_METHOD:-none})"
 echo " RAM: ${SYS_MEM_GB} GB"
+echo "-----------------------------------------"
+echo " Driver Versions:"
+echo "$INTEL_PKGS"
 echo "========================================="
 
 # Print blank lines initially to reserve space on the screen for the first overwrite
