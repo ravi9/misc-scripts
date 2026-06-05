@@ -8,6 +8,7 @@
 #   - sudo access    (GPU topology from debugfs)
 #
 # Usage:
+#   wget https://raw.githubusercontent.com/ravi9/misc-scripts/refs/heads/main/openvino/install-gpu-npu-drivers/print_cpu_gpu_npu_usage.sh
 #   bash print_cpu_gpu_npu_util.sh
 #   Press Ctrl+C to stop.
 #
