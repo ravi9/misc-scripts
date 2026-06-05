@@ -49,19 +49,21 @@ sudo dpkg -i *.deb
 
 sudo apt-get install -f -y  # Fixes missing foundational dependencies
 
-# NPU v1.32.1
+# NPU v1.33.0
 cd ~/gpu-npu-drivers
 mkdir npu-drivers
 cd npu-drivers
 
-wget https://github.com/intel/linux-npu-driver/releases/download/v1.32.1/linux-npu-driver-v1.32.1.20260422-24767473183-ubuntu2404.tar.gz
-tar -xf linux-npu-driver-v1.32.1.20260422-24767473183-ubuntu2404.tar.gz
+sudo dpkg --purge --force-remove-reinstreq intel-driver-compiler-npu intel-fw-npu intel-level-zero-npu intel-level-zero-npu-dbgsym
+
+wget https://github.com/intel/linux-npu-driver/releases/download/v1.33.0/linux-npu-driver-v1.33.0.20260529-26625960453-ubuntu2404.tar.gz
+tar -xf linux-npu-driver-v1.33.0.20260529-26625960453-ubuntu2404.tar.gz
 
 sudo apt update -y
-sudo apt install ./intel-*.deb -y
+sudo dpkg -i *.deb
 
 wget https://snapshot.ppa.launchpadcontent.net/kobuk-team/intel-graphics/ubuntu/20260324T100000Z/pool/main/l/level-zero-loader/libze1_1.27.0-1~24.04~ppa2_amd64.deb
-sudo apt install ./libze1_*.deb
+sudo dpkg -i libze1_*.deb
 
 # Force overwrite the old system level-zero file if above fails.
 sudo dpkg -i --force-overwrite ./libze1_*.deb
@@ -80,13 +82,13 @@ Sample Output:
 ```console
 $ dpkg -l | grep -i intel | grep -E 'igc|opencl|ocloc|igdgmm|level-zero|gpu'
 ii  intel-gpu-tools                               1.28-1ubuntu2                            amd64        tools for debugging the Intel graphics driver
-ii  intel-igc-core-2                              2.28.4                                   amd64        Intel(R) Graphics Compiler for OpenCL(TM)
-ii  intel-igc-opencl-2                            2.28.4                                   amd64        Intel(R) Graphics Compiler for OpenCL(TM)
-ii  intel-level-zero-npu                          1.30.0.20260311-22963593310~ubuntu24.04  amd64        Intel(R) Level Zero Driver for NPU hardware
-ii  intel-ocloc                                   26.05.37020.3-0                          amd64        Tool for managing Intel Compute GPU device binary format
-ii  intel-opencl-icd                              26.05.37020.3-0                          amd64        Intel graphics compute runtime for OpenCL
-ii  libigdgmm12:amd64                             22.9.0                                   amd64        Intel Graphics Memory Management Library -- shared library
-ii  libze-intel-gpu1                              26.05.37020.3-0                          amd64        Intel(R) Graphics Compute Runtime for oneAPI Level Zero.
+ii  intel-igc-core-2                              2.34.4                                   amd64        Intel(R) Graphics Compiler for OpenCL(TM)
+ii  intel-igc-opencl-2                            2.34.4                                   amd64        Intel(R) Graphics Compiler for OpenCL(TM)
+ii  intel-level-zero-npu                          1.33.0.20260529-26625960453~ubuntu24.04  amd64        Intel(R) Level Zero Driver for NPU hardware
+ii  intel-ocloc                                   26.18.38308.1-0                          amd64        Tool for managing Intel Compute GPU devicebinary format
+ii  intel-opencl-icd                              26.18.38308.1-0                          amd64        Intel graphics compute runtime for OpenCL
+ii  libigdgmm12:amd64                             22.10.0                                  amd64        Intel Graphics Memory Management Library -- shared library
+ii  libze-intel-gpu1                              26.18.38308.1-0                          amd64        Intel(R) Graphics Compute Runtime for oneAPI Level Zero.
 ```
 ---
 ### Validation and Testing:
