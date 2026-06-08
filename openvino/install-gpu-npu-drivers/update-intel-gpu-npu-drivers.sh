@@ -1,4 +1,9 @@
 #!/usr/bin/env bash
+
+# Usage:
+# wget https://raw.githubusercontent.com/ravi9/misc-scripts/refs/heads/main/openvino/install-gpu-npu-drivers/update-intel-gpu-npu-drivers.sh
+# bash update-intel-gpu-npu-drivers.sh
+
 set -Eeuo pipefail
 
 readonly RED='\033[0;31m'
