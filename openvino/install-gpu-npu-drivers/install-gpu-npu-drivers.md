@@ -37,12 +37,9 @@ mkdir neo
 cd neo
 wget https://github.com/intel/intel-graphics-compiler/releases/download/v2.34.4/intel-igc-core-2_2.34.4+21428_amd64.deb
 wget https://github.com/intel/intel-graphics-compiler/releases/download/v2.34.4/intel-igc-opencl-2_2.34.4+21428_amd64.deb
-wget https://github.com/intel/compute-runtime/releases/download/26.18.38308.1/intel-ocloc-dbgsym_26.18.38308.1-0_amd64.ddeb
 wget https://github.com/intel/compute-runtime/releases/download/26.18.38308.1/intel-ocloc_26.18.38308.1-0_amd64.deb
-wget https://github.com/intel/compute-runtime/releases/download/26.18.38308.1/intel-opencl-icd-dbgsym_26.18.38308.1-0_amd64.ddeb
 wget https://github.com/intel/compute-runtime/releases/download/26.18.38308.1/intel-opencl-icd_26.18.38308.1-0_amd64.deb
 wget https://github.com/intel/compute-runtime/releases/download/26.18.38308.1/libigdgmm12_22.10.0_amd64.deb
-wget https://github.com/intel/compute-runtime/releases/download/26.18.38308.1/libze-intel-gpu1-dbgsym_26.18.38308.1-0_amd64.ddeb
 wget https://github.com/intel/compute-runtime/releases/download/26.18.38308.1/libze-intel-gpu1_26.18.38308.1-0_amd64.deb
 
 sudo dpkg -i *.deb
