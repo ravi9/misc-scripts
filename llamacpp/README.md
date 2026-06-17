@@ -11,7 +11,7 @@ References:
 ---
 
 ## Contents
-
+- [0. Quick Start](#0-quick-start)
 - [1. Prerequisites](#1-prerequisites)
 - [2. Layout used by this guide](#2-layout-used-by-this-guide)
 - [3. Build with Vulkan](#3-build-with-vulkan)
@@ -24,7 +24,7 @@ References:
 
 ---
 
-## Quick Start
+## 0. Quick Start
 
 Copy-paste runnable. Open a fresh **`cmd`** window (a **Developer Command Prompt for VS 2022** is safest) and run the blocks below in order. The Vulkan and OpenVINO build scripts are hosted at:
 
@@ -83,6 +83,8 @@ curl -L ^
 Expected size: ~7.3 GB. If the model is gated, prepend `-H "Authorization: Bearer %HF_TOKEN%"` to the `curl` command.
 
 ### 4) Run both GPU benchmarks
+> [!NOTE]
+> Following commands are for command prompt. For Powershell, setting env variable syntax is `$env:GGML_OPENVINO_DEVICE = "GPU"`, `$env:GGML_OPENVINO_STATEFUL_EXECUTION = "0"`
 
 ```cmd
 cd /d C:\llamacpp-bench\llama.cpp
@@ -96,7 +98,7 @@ build\ReleaseVK\bin\llama-bench.exe ^
 :: ---- OpenVINO GPU ----
 call "C:\Intel\openvino\setupvars.bat"
 set GGML_OPENVINO_DEVICE=GPU
-set GGML_OPENVINO_STATEFUL_EXECUTION=1
+set GGML_OPENVINO_STATEFUL_EXECUTION=0
 set GGML_OPENVINO_CACHE_DIR=C:\tmp\ov_cache
 
 build\ReleaseOV\bin\llama-bench.exe ^
