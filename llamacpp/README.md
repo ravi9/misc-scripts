@@ -24,6 +24,100 @@ References:
 
 ---
 
+## Quick Start
+
+Copy-paste runnable. Open a fresh **`cmd`** window (a **Developer Command Prompt for VS 2022** is safest) and run the blocks below in order. The Vulkan and OpenVINO build scripts are hosted at:
+
+- https://raw.githubusercontent.com/ravi9/misc-scripts/refs/heads/main/llamacpp/llamacpp_vulkan_build.bat
+- https://raw.githubusercontent.com/ravi9/misc-scripts/refs/heads/main/llamacpp/llamacpp_openvino_build.bat
+
+> [!TIP]
+> Sections [1](#1-prerequisites)–[9](#9-troubleshooting) below explain every step in detail, including what each script installs, environment variables, and how to interpret results.
+
+### 1) Create the working directory and grab both `.bat` scripts
+
+```cmd
+:: Create folders for the build trees and the model.
+mkdir C:\llamacpp-bench
+mkdir C:\models
+cd /d C:\llamacpp-bench
+
+:: Download the two build scripts.
+curl -L -o llamacpp_vulkan_build.bat   https://raw.githubusercontent.com/ravi9/misc-scripts/refs/heads/main/llamacpp/llamacpp_vulkan_build.bat
+curl -L -o llamacpp_openvino_build.bat https://raw.githubusercontent.com/ravi9/misc-scripts/refs/heads/main/llamacpp/llamacpp_openvino_build.bat
+```
+
+PowerShell equivalent for the two downloads:
+
+```powershell
+mkdir C:\llamacpp-bench, C:\models -Force
+Set-Location C:\llamacpp-bench
+Invoke-WebRequest -Uri https://raw.githubusercontent.com/ravi9/misc-scripts/refs/heads/main/llamacpp/llamacpp_vulkan_build.bat   -OutFile llamacpp_vulkan_build.bat
+Invoke-WebRequest -Uri https://raw.githubusercontent.com/ravi9/misc-scripts/refs/heads/main/llamacpp/llamacpp_openvino_build.bat -OutFile llamacpp_openvino_build.bat
+```
+
+### 2) Build both backends
+
+Both scripts auto-install their prerequisites via `winget`, clone `llama.cpp` into `C:\llamacpp-bench\llama.cpp`, and produce separate Ninja Release builds (`build\ReleaseVK` and `build\ReleaseOV`).
+
+```cmd
+cd /d C:\llamacpp-bench
+
+:: Vulkan build  -> C:\llamacpp-bench\llama.cpp\build\ReleaseVK\bin
+llamacpp_vulkan_build.bat
+
+:: OpenVINO build -> C:\llamacpp-bench\llama.cpp\build\ReleaseOV\bin
+llamacpp_openvino_build.bat
+```
+
+> First run only: if `llamacpp_openvino_build.bat` fails to copy into `C:\Intel\` or to create the junction, re-run it from an **elevated** Command Prompt.
+
+### 3) Download the gemma-4-12B-it Q4_K_M model to `C:\models`
+
+```cmd
+curl -L ^
+  -o C:\models\gemma-4-12B-it-Q4_K_M.gguf ^
+  https://huggingface.co/bartowski/gemma-4-12B-it-GGUF/resolve/main/gemma-4-12B-it-Q4_K_M.gguf
+```
+
+Expected size: ~7.3 GB. If the model is gated, prepend `-H "Authorization: Bearer %HF_TOKEN%"` to the `curl` command.
+
+### 4) Run both GPU benchmarks
+
+```cmd
+cd /d C:\llamacpp-bench\llama.cpp
+
+:: ---- Vulkan GPU ----
+build\ReleaseVK\bin\llama-bench.exe ^
+    -m C:\models\gemma-4-12B-it-Q4_K_M.gguf ^
+    -ngl 99 -fa 1 -p 512 -n 128 -r 5 ^
+    -o md > vulkan_gpu_gemma4_12b.md
+
+:: ---- OpenVINO GPU ----
+call "C:\Intel\openvino\setupvars.bat"
+set GGML_OPENVINO_DEVICE=GPU
+set GGML_OPENVINO_STATEFUL_EXECUTION=1
+set GGML_OPENVINO_CACHE_DIR=C:\tmp\ov_cache
+
+build\ReleaseOV\bin\llama-bench.exe ^
+    -m C:\models\gemma-4-12B-it-Q4_K_M.gguf ^
+    -fa 1 -p 512 -n 128 -r 5 ^
+    -o md > openvino_gpu_gemma4_12b.md
+```
+
+Run the OpenVINO command **twice** and use the second run's numbers — the first run pays a one-time graph-compile cost that the cache eliminates afterwards.
+
+### 5) View the side-by-side results
+
+```cmd
+type vulkan_gpu_gemma4_12b.md
+type openvino_gpu_gemma4_12b.md
+```
+
+That's the whole pipeline. The rest of this document explains every flag, alternative invocation, and failure mode in detail.
+
+---
+
 ## 1. Prerequisites
 
 - Windows 10/11 with an Intel GPU (iGPU on Core Ultra Series 1/2 or a discrete Intel GPU).
