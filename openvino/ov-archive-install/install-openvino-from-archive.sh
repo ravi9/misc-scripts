@@ -3,8 +3,8 @@
 # https://docs.openvino.ai/2026/get-started/install-openvino/install-openvino-archive-linux.html#install-openvino-runtime-on-linux-from-an-archive-file
 
 # === CONFIGURATION ===
-export OPENVINO_VERSION_MAJOR=2026.2
-export OPENVINO_VERSION_FULL=2026.2.0.21903.52ddc073857
+export OPENVINO_VERSION_MAJOR=2026.2.1
+export OPENVINO_VERSION_FULL=2026.2.1.21919.ede283a88e3
 export OPENVINO_INSTALL_DIR=/opt/intel/openvino_${OPENVINO_VERSION_MAJOR}
 export OPENVINO_LINK_DIR=/opt/intel/openvino
 
