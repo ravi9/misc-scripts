@@ -1,4 +1,8 @@
 #!/bin/bash
+# Usage:
+# wget https://raw.githubusercontent.com/ravi9/misc-scripts/refs/heads/main/openvino/ov-archive-install/install-openvino-from-archive.sh
+# bash install-openvino-from-archive.sh
+#
 # Script to Install OpenVINO Runtime on Ubuntu from an Archive File
 # https://docs.openvino.ai/2026/get-started/install-openvino/install-openvino-archive-linux.html#install-openvino-runtime-on-linux-from-an-archive-file
 
