@@ -28,8 +28,8 @@ References:
 
 Copy-paste runnable. Open a fresh **`cmd`** window (a **Developer Command Prompt for VS 2022** is safest) and run the blocks below in order. The Vulkan and OpenVINO build scripts are hosted at:
 
-- https://raw.githubusercontent.com/ravi9/misc-scripts/refs/heads/main/llamacpp/llamacpp_vulkan_build.bat
-- https://raw.githubusercontent.com/ravi9/misc-scripts/refs/heads/main/llamacpp/llamacpp_openvino_build.bat
+- https://raw.githubusercontent.com/ravi9/misc-scripts/main/llamacpp/windows-bench/llamacpp_vulkan_build.bat
+- https://raw.githubusercontent.com/ravi9/misc-scripts/main/llamacpp/windows-bench/llamacpp_openvino_build.bat
 
 > [!TIP]
 > Sections [1](#1-prerequisites)–[9](#9-troubleshooting) below explain every step in detail, including what each script installs, environment variables, and how to interpret results.
@@ -43,8 +43,8 @@ mkdir C:\models
 cd /d C:\llamacpp-bench
 
 :: Download the two build scripts.
-curl -L -o llamacpp_vulkan_build.bat   https://raw.githubusercontent.com/ravi9/misc-scripts/refs/heads/main/llamacpp/llamacpp_vulkan_build.bat
-curl -L -o llamacpp_openvino_build.bat https://raw.githubusercontent.com/ravi9/misc-scripts/refs/heads/main/llamacpp/llamacpp_openvino_build.bat
+curl -L -o llamacpp_vulkan_build.bat   https://raw.githubusercontent.com/ravi9/misc-scripts/main/llamacpp/windows-bench/llamacpp_vulkan_build.bat
+curl -L -o llamacpp_openvino_build.bat https://raw.githubusercontent.com/ravi9/misc-scripts/main/llamacpp/windows-bench/llamacpp_openvino_build.bat
 ```
 
 PowerShell equivalent for the two downloads:
@@ -52,8 +52,8 @@ PowerShell equivalent for the two downloads:
 ```powershell
 mkdir C:\llamacpp-bench, C:\models -Force
 Set-Location C:\llamacpp-bench
-Invoke-WebRequest -Uri https://raw.githubusercontent.com/ravi9/misc-scripts/refs/heads/main/llamacpp/llamacpp_vulkan_build.bat   -OutFile llamacpp_vulkan_build.bat
-Invoke-WebRequest -Uri https://raw.githubusercontent.com/ravi9/misc-scripts/refs/heads/main/llamacpp/llamacpp_openvino_build.bat -OutFile llamacpp_openvino_build.bat
+Invoke-WebRequest -Uri https://raw.githubusercontent.com/ravi9/misc-scripts/main/llamacpp/windows-bench/llamacpp_vulkan_build.bat   -OutFile llamacpp_vulkan_build.bat
+Invoke-WebRequest -Uri https://raw.githubusercontent.com/ravi9/misc-scripts/main/llamacpp/windows-bench/llamacpp_openvino_build.bat -OutFile llamacpp_openvino_build.bat
 ```
 
 ### 2) Build both backends
@@ -127,8 +127,9 @@ That's the whole pipeline. The rest of this document explains every flag, altern
 - ~25 GB free disk space (build trees + the `gemma-4-12B-it-Q4_K_M.gguf` model is ~7.3 GB).
 - A **Developer Command Prompt for VS 2022** is the safest shell. A regular `cmd` works if `vswhere.exe` can locate the VS Build Tools install — both build scripts auto-call `vcvars64.bat` from the latest install.
 
-The two build scripts referenced below are the ones generated for this project:
+The build scripts and supporting files for this guide are available in the repository: https://github.com/ravi9/misc-scripts/tree/main/llamacpp/windows-bench
 
+The two primary build scripts are:
 - [llamacpp_vulkan_build.bat](llamacpp_vulkan_build.bat)
 - [llamacpp_openvino_build.bat](llamacpp_openvino_build.bat)
 
