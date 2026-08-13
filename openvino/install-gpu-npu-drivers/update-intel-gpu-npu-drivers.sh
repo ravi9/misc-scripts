@@ -354,15 +354,26 @@ main() {
     check_npu_updates || exit 1
     print_summary
 
-    if [[ "$GPU_CR_UPDATE_NEEDED" != "true" && "$GPU_IGC_UPDATE_NEEDED" != "true" && "$NPU_UPDATE_NEEDED" != "true" ]]; then
+    # No Intel GPU/NPU drivers installed: treat as a fresh install and ask first.
+    local any_intel_pkg_present=false
+    for pkg in intel-opencl-icd intel-ocloc libigdgmm12 libze-intel-gpu1 \
+               intel-igc-core-2 intel-igc-opencl-2 intel-level-zero-npu; do
+        if dpkg-query -W "$pkg" >/dev/null 2>&1; then
+            any_intel_pkg_present=true
+            break
+        fi
+    done
+
+    if [[ "$any_intel_pkg_present" == false ]]; then
+        if [[ "$AUTO_YES" == false ]]; then
+            read -p "No Intel GPU/NPU drivers were found. Do you want to install them now? (y/N) " -n 1 -r
+            echo
+            [[ ! $REPLY =~ ^[Yy]$ ]] && { log_info "Install cancelled."; exit 0; }
+        fi
+        log_info "No drivers detected; proceeding with fresh installation."
+    elif [[ "$GPU_CR_UPDATE_NEEDED" != "true" && "$GPU_IGC_UPDATE_NEEDED" != "true" && "$NPU_UPDATE_NEEDED" != "true" ]]; then
         log_info "All drivers are already up to date. Exiting."
         exit 0
-    fi
-
-    if [[ "$AUTO_YES" == false ]]; then
-        read -p "Do you wish to update the drivers listed above? (y/N) " -n 1 -r
-        echo
-        [[ ! $REPLY =~ ^[Yy]$ ]] && { log_info "Update cancelled."; exit 0; }
     fi
 
     sudo apt update -y
