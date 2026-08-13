@@ -366,7 +366,7 @@ main() {
 
     if [[ "$any_intel_pkg_present" == false ]]; then
         if [[ "$AUTO_YES" == false ]]; then
-            read -p "No Intel GPU/NPU drivers were found. Do you want to install them now? (y/N) " -n 1 -r
+            read -p "Intel GPU/NPU drivers not found. Do you want to install them now? (y/N) " -n 1 -r
             echo
             [[ ! $REPLY =~ ^[Yy]$ ]] && { log_info "Install cancelled."; exit 0; }
         fi
