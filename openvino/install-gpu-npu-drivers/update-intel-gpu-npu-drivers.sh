@@ -65,7 +65,7 @@ fetch_assets_with_versions() {
     local repo="$1" pattern="$2"
     local api_url="https://api.github.com/repos/${repo}/releases/latest"
     local response
-    response=$(curl -sSfL --retry 3 --retry-delay 1 "$api_url" 2>/dev/null) || {
+    response=$(curl -k -sSfL --retry 3 --retry-delay 1 "$api_url" 2>/dev/null) || {
         log_error "Failed to fetch GitHub API for ${repo}"
         return 1
     }
@@ -181,7 +181,7 @@ check_npu_updates() {
     local repo="intel/linux-npu-driver"
     local api_url="https://api.github.com/repos/${repo}/releases/latest"
     local response
-    response=$(curl -sSfL --retry 3 --retry-delay 1 "$api_url" 2>/dev/null) || {
+    response=$(curl -k -sSfL --retry 3 --retry-delay 1 "$api_url" 2>/dev/null) || {
         log_error "Failed to fetch NPU release info"
         return 1
     }
@@ -247,7 +247,7 @@ install_debs_from_urls() {
         local filename=$(basename "$url")
         local dest="${TEMP_DIR}/${filename}"
         log_info "Downloading ${filename} ..."
-        curl -sSfL --retry 3 --retry-delay 1 -o "$dest" "$url" || return 1
+        curl -k -sSfL --retry 3 --retry-delay 1 -o "$dest" "$url" || return 1
         deb_files+=("$dest")
     done
     [[ ${#deb_files[@]} -eq 0 ]] && return 0
@@ -261,16 +261,22 @@ install_debs_from_urls() {
 perform_gpu_update() {
     log_step "Updating Intel GPU drivers..."
     local urls=()
+
+    # Install IGC first because the compute-runtime packages declare it as a dependency.
+    # Doing the runtime packages first causes dpkg to leave them unconfigured, and then
+    # the script has to be run again after IGC is installed.
+    if [[ "$GPU_IGC_UPDATE_NEEDED" == "true" ]]; then
+        for pkg in intel-igc-core-2 intel-igc-opencl-2; do
+            urls+=("${IGC_ASSET[$pkg]}")
+        done
+        install_debs_from_urls "${urls[@]}" || return 1
+        sudo apt-get install -f -y || true
+    fi
+
+    urls=()
     if [[ "$GPU_CR_UPDATE_NEEDED" == "true" ]]; then
         for pkg in intel-opencl-icd intel-ocloc libigdgmm12 libze-intel-gpu1; do
             urls+=("${GPU_CR_ASSET[$pkg]}")
-        done
-        install_debs_from_urls "${urls[@]}" || return 1
-    fi
-    if [[ "$GPU_IGC_UPDATE_NEEDED" == "true" ]]; then
-        urls=()
-        for pkg in intel-igc-core-2 intel-igc-opencl-2; do
-            urls+=("${IGC_ASSET[$pkg]}")
         done
         install_debs_from_urls "${urls[@]}" || return 1
     fi
@@ -284,7 +290,7 @@ perform_npu_update() {
     [[ "$NPU_UPDATE_NEEDED" != "true" ]] && { log_info "NPU driver already up to date."; return 0; }
     log_info "Downloading NPU tarball (${NPU_LATEST}) ..."
     local tarball="${TEMP_DIR}/npu_driver.tar.gz"
-    curl -sSfL --retry 3 --retry-delay 1 -o "$tarball" "${NPU_ASSET_URL}" || return 1
+    curl -k -sSfL --retry 3 --retry-delay 1 -o "$tarball" "${NPU_ASSET_URL}" || return 1
     local extract_dir="${TEMP_DIR}/npu_extract"
     mkdir -p "$extract_dir"
     tar -xzf "$tarball" -C "$extract_dir" || return 1
@@ -292,8 +298,12 @@ perform_npu_update() {
     [[ ${#debs[@]} -eq 0 ]] && { log_error "No .deb files in NPU tarball"; return 1; }
     sudo dpkg --purge --force-remove-reinstreq intel-driver-compiler-npu intel-fw-npu intel-level-zero-npu 2>/dev/null || true
     sudo dpkg -i "${debs[@]}" || sudo apt-get install -f -y
-    if ! dpkg-query -W level-zero-loader >/dev/null 2>&1; then
-        sudo apt-get install -y level-zero-loader
+    if apt-cache show level-zero-loader >/dev/null 2>&1; then
+        if ! dpkg-query -W level-zero-loader >/dev/null 2>&1; then
+            sudo apt-get install -y level-zero-loader
+        fi
+    else
+        log_warn "level-zero-loader package is not available in this Ubuntu repo; skipping optional dependency install."
     fi
 }
 
