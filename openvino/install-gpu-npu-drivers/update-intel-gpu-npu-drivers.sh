@@ -1,8 +1,9 @@
 #!/usr/bin/env bash
 
-# Usage:
-# wget https://raw.githubusercontent.com/ravi9/misc-scripts/refs/heads/main/openvino/install-gpu-npu-drivers/update-intel-gpu-npu-drivers.sh
-# bash update-intel-gpu-npu-drivers.sh
+: <<'USAGE'
+wget https://raw.githubusercontent.com/ravi9/misc-scripts/refs/heads/main/openvino/install-gpu-npu-drivers/update-intel-gpu-npu-drivers.sh
+bash update-intel-gpu-npu-drivers.sh
+USAGE
 
 set -Eeuo pipefail
 
@@ -353,6 +354,19 @@ main() {
     check_gpu_updates || exit 1
     check_npu_updates || exit 1
     print_summary
+
+    local updates_available=false
+    if [[ "$GPU_CR_UPDATE_NEEDED" == "true" || "$GPU_IGC_UPDATE_NEEDED" == "true" || "$NPU_UPDATE_NEEDED" == "true" ]]; then
+        updates_available=true
+    fi
+
+    if [[ "$updates_available" == "true" ]]; then
+        if [[ "$AUTO_YES" == false ]]; then
+            read -p "Driver updates are available. Do you want to update now? (y/N) " -n 1 -r
+            echo
+            [[ ! $REPLY =~ ^[Yy]$ ]] && { log_info "Update cancelled."; exit 0; }
+        fi
+    fi
 
     # No Intel GPU/NPU drivers installed: treat as a fresh install and ask first.
     local any_intel_pkg_present=false
