@@ -19,7 +19,7 @@ del openvino.zip
 if exist "C:\Intel\openvino" rmdir "C:\Intel\openvino"
 mklink /J C:\Intel\openvino C:\Intel\openvino_nightly
 
-REM Git Clone custom repo of qwen3.6-35B-A3B support
+REM Git Clone custom repo of npu optimizations support
 git clone https://github.com/zhaixuejun1993/llama.cpp.git
 cd llama.cpp
 git checkout xuejun/npu_profiling_v5
