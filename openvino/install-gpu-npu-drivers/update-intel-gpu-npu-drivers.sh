@@ -3,6 +3,8 @@
 : <<'USAGE'
 wget https://raw.githubusercontent.com/ravi9/misc-scripts/refs/heads/main/openvino/install-gpu-npu-drivers/update-intel-gpu-npu-drivers.sh
 bash update-intel-gpu-npu-drivers.sh
+# If GitHub API rate limit exceeded, pass a personal access token as a parameter.
+bash update-intel-gpu-npu-drivers.sh --token ghp_xxx
 USAGE
 
 set -Eeuo pipefail
@@ -15,13 +17,14 @@ readonly CYAN='\033[0;36m'
 readonly NC='\033[0m'
 
 TEMP_DIR=""
+GITHUB_TOKEN=""
 trap 'cleanup' EXIT INT TERM
 
-log_info()    { echo -e "${GREEN}[INFO]${NC} $*"; }
-log_warn()    { echo -e "${YELLOW}[WARN]${NC} $*"; }
-log_error()   { echo -e "${RED}[ERROR]${NC} $*"; }
-log_step()    { echo -e "${BLUE}[STEP]${NC} $*"; }
-log_debug()   { echo -e "${CYAN}[DEBUG]${NC} $*"; }
+log_info()    { echo -e "${GREEN}[INFO]${NC} $*" >&2; }
+log_warn()    { echo -e "${YELLOW}[WARN]${NC} $*" >&2; }
+log_error()   { echo -e "${RED}[ERROR]${NC} $*" >&2; }
+log_step()    { echo -e "${BLUE}[STEP]${NC} $*" >&2; }
+log_debug()   { echo -e "${CYAN}[DEBUG]${NC} $*" >&2; }
 
 cleanup() {
     [[ -n "${TEMP_DIR}" && -d "${TEMP_DIR}" ]] && rm -rf "${TEMP_DIR}"
@@ -57,6 +60,35 @@ get_installed_version() {
 }
 
 # ----------------------------------------------------------------------
+# Call the GitHub API, using GITHUB_TOKEN if set. On failure, detects rate
+# limiting specifically and suggests using a token to raise the limit.
+# ----------------------------------------------------------------------
+github_api_get() {
+    local url="$1"
+    local auth_args=()
+    [[ -n "${GITHUB_TOKEN}" ]] && auth_args=(-H "Authorization: Bearer ${GITHUB_TOKEN}")
+    local response http_code body
+    response=$(curl -k -sS --retry 3 --retry-delay 1 -w $'\n%{http_code}' "${auth_args[@]}" "$url" 2>/dev/null) || {
+        log_error "Failed to reach GitHub API: ${url}"
+        return 1
+    }
+    http_code="${response##*$'\n'}"
+    body="${response%$'\n'*}"
+    if [[ "$http_code" != "200" ]]; then
+        if echo "$body" | grep -qi "rate limit exceeded"; then
+            log_error "GitHub API rate limit exceeded."
+            log_warn "Set a GitHub personal access token to raise the limit (60/hr -> 5000/hr):"
+            log_warn "  bash update-intel-gpu-npu-drivers.sh --token=ghp_xxx"
+            log_warn "  Create one at: https://github.com/settings/tokens (no scopes needed for public repos)"
+        else
+            log_error "GitHub API request failed (HTTP ${http_code}) for ${url}"
+        fi
+        return 1
+    fi
+    echo "$body"
+}
+
+# ----------------------------------------------------------------------
 # Fetch latest release assets from GitHub, return a newline-separated list
 # of "url|version" for each asset matching a given pattern.
 # For .deb files: version is extracted from the filename (after _).
@@ -66,10 +98,7 @@ fetch_assets_with_versions() {
     local repo="$1" pattern="$2"
     local api_url="https://api.github.com/repos/${repo}/releases/latest"
     local response
-    response=$(curl -k -sSfL --retry 3 --retry-delay 1 "$api_url" 2>/dev/null) || {
-        log_error "Failed to fetch GitHub API for ${repo}"
-        return 1
-    }
+    response=$(github_api_get "$api_url") || return 1
     # Extract tag version (for NPU we'll use this directly)
     local tag
     tag=$(echo "$response" | grep -o '"tag_name": *"[^"]*"' | head -1 | sed 's/.*"\([^"]*\)"/\1/')
@@ -182,10 +211,7 @@ check_npu_updates() {
     local repo="intel/linux-npu-driver"
     local api_url="https://api.github.com/repos/${repo}/releases/latest"
     local response
-    response=$(curl -k -sSfL --retry 3 --retry-delay 1 "$api_url" 2>/dev/null) || {
-        log_error "Failed to fetch NPU release info"
-        return 1
-    }
+    response=$(github_api_get "$api_url") || return 1
     local tag
     tag=$(echo "$response" | grep -o '"tag_name": *"[^"]*"' | head -1 | sed 's/.*"\([^"]*\)"/\1/')
     tag="${tag#v}"
@@ -337,15 +363,17 @@ main() {
     while [[ $# -gt 0 ]]; do
         case "$1" in
             -y|--yes) AUTO_YES=true ;;
+            -t|--token) GITHUB_TOKEN="${2:-}"; shift ;;
+            --token=*) GITHUB_TOKEN="${1#*=}" ;;
             *) log_error "Unknown option: $1"; exit 1 ;;
         esac
         shift
     done
 
     log_info "Intel GPU/NPU Driver Auto-Updater started."
+    
     if ! grep -q "Ubuntu 24.04" /etc/os-release; then
-        log_error "This script is designed for Ubuntu 24.04 only."
-        exit 1
+        log_warn "This script is validated on Ubuntu 24.04. Detected OS: $(grep 'PRETTY_NAME' /etc/os-release | cut -d '=' -f2 | tr -d '\"')."
     fi
 
     TEMP_DIR=$(mktemp -d)
