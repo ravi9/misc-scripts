@@ -6,9 +6,11 @@
 # Script to Install OpenVINO Runtime on Ubuntu from an Archive File
 # https://docs.openvino.ai/2026/get-started/install-openvino/install-openvino-archive-linux.html#install-openvino-runtime-on-linux-from-an-archive-file
 
+https://storage.openvinotoolkit.org/repositories/openvino/packages/2026.4/windows/openvino_toolkit_windows_2026.4.0.22959.99c81491cc3_x86_64.zip
+
 # === CONFIGURATION ===
-export OPENVINO_VERSION_MAJOR=2026.3.1
-export OPENVINO_VERSION_FULL=2026.3.1.22476.56d9685302d
+export OPENVINO_VERSION_MAJOR=2026.4
+export OPENVINO_VERSION_FULL=2026.4.0.22959.99c81491cc3
 export OPENVINO_INSTALL_DIR=/opt/intel/openvino_${OPENVINO_VERSION_MAJOR}
 export OPENVINO_LINK_DIR=/opt/intel/openvino
 
