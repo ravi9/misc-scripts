@@ -1,16 +1,15 @@
 #!/bin/bash
-# Usage:
-# wget https://raw.githubusercontent.com/ravi9/misc-scripts/refs/heads/main/openvino/ov-archive-install/install-openvino-from-archive.sh
-# bash install-openvino-from-archive.sh
-#
-# Script to Install OpenVINO Runtime on Ubuntu from an Archive File
-# https://docs.openvino.ai/2026/get-started/install-openvino/install-openvino-archive-linux.html#install-openvino-runtime-on-linux-from-an-archive-file
+: <<'USAGE'
+wget https://raw.githubusercontent.com/ravi9/misc-scripts/refs/heads/main/openvino/ov-archive-install/install-openvino-from-archive.sh
+bash install-openvino-from-archive.sh
 
-https://storage.openvinotoolkit.org/repositories/openvino/packages/2026.4/windows/openvino_toolkit_windows_2026.4.0.22959.99c81491cc3_x86_64.zip
+Script to Install OpenVINO Runtime on Ubuntu from an Archive File
+https://docs.openvino.ai/2026/get-started/install-openvino/install-openvino-archive-linux.html#install-openvino-runtime-on-linux-from-an-archive-file
+USAGE
 
 # === CONFIGURATION ===
-export OPENVINO_VERSION_MAJOR=2026.4
-export OPENVINO_VERSION_FULL=2026.4.0.22959.99c81491cc3
+export OPENVINO_VERSION_MAJOR=2026.4.1
+export OPENVINO_VERSION_FULL=2026.4.1.22982.07f9c262b05
 export OPENVINO_INSTALL_DIR=/opt/intel/openvino_${OPENVINO_VERSION_MAJOR}
 export OPENVINO_LINK_DIR=/opt/intel/openvino
 
