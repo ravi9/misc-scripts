@@ -107,6 +107,7 @@ No native toolchain? Fall back to Docker (also exercises the real download path)
 ```sh
 docker build -f .devops/openvino.Dockerfile --target full -t llama-openvino-test .
 ```
+Behind a proxy, pass it in: `--build-arg http_proxy=<proxy> --build-arg https_proxy=<proxy>` (the Dockerfile declares both).
 Report which path you used and whether it passed. If you skip building, say so and state what's unverified.
 
 ## Step 7 - Re-verify
@@ -120,6 +121,28 @@ Report which path you used and whether it passed. If you skip building, say so a
 Show `git diff` and stop. Committing and pushing are the user's, per `AGENTS.md`.
 
 Read the diff for files you did not touch before handing it over. A bump touches only the pin files, so anything else is someone else's in-flight edit - name it explicitly instead of reverting it, because `git add -u` will sweep it into their commit.
+
+## Driver pins (when asked)
+
+`.devops/openvino.Dockerfile` also pins the GPU and NPU drivers, in their own ARG blocks:
+
+- **GPU** ([compute-runtime releases](https://github.com/intel/compute-runtime/releases)):
+  - `IGC_VERSION` (e.g. `v2.41.5`) and `IGC_VERSION_FULL` (`2_2.41.5+22716`);
+  - `COMPUTE_RUNTIME_VERSION` (`26.35.39758.10`) and `COMPUTE_RUNTIME_VERSION_FULL` (`26.35.39758.10-0`);
+  - `IGDGMM_VERSION`.
+
+  Take all of them from one compute-runtime release: its install section lists the matching IGC and gmmlib packages.
+- **NPU** ([linux-npu-driver releases](https://github.com/intel/linux-npu-driver/releases)):
+  - `NPU_DRIVER_VERSION` (`v1.38.0`);
+  - `NPU_DRIVER_FULL` (`v1.38.0.20260910-34487311128`, from the asset name `linux-npu-driver-<FULL>-ubuntu2404.tar.gz`);
+  - `LIBZE1_VERSION` (`1.32.0-1~24.04~ppa1`);
+  - the dated PPA snapshot directory in the libze1 URL (`.../kobuk-team/intel-graphics/ubuntu/<YYYYMMDD>T100000Z/pool/...`). It must be a snapshot that contains that libze1 version.
+
+The driver release notes list the package URLs; take the versions from them. Check every package URL with the Step 2 range-request curl before editing. Then build the image (Step 6, Docker) and confirm what got installed:
+```sh
+docker run --rm llama-openvino-test bash -c "dpkg -l | grep -iE 'level-zero|libze|npu|opencl|igc'"
+```
+Name a GPU driver bump in the commit subject, e.g. `openvino : update OpenVINO to 2026.4.1 and GPU drivers to 26.35.39758.10`. The docs' "Validation system" line names the drivers the validation machine ran. It changes with a validation run, not with the Dockerfile.
 
 ## Gotchas
 
