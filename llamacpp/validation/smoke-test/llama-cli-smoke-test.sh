@@ -3,13 +3,15 @@
 # llama-cli smoke test
 #
 # Purpose:
-#   Run a quick correctness smoke test for each .gguf model in ~/models_q4_km
-#   across CPU, GPU, and NPU devices, checking both stateful=0 and stateful=1.
+#   Run a quick correctness smoke test for each .gguf model in MODEL_DIR (default ~/models_q4_km)
+#   on CPU, GPU and NPU with stateless execution (GGML_OPENVINO_STATEFUL_EXECUTION=0).
+#   Stateful execution is deprecated, so it is not tested.
 #
 # Usage:
 #   ./llama-cli-smoke-test.sh
 #   LLAMA_CLI_PATH=./build/ReleaseOV/bin/llama-cli ./llama-cli-smoke-test.sh
 #   MODEL_DIR="$HOME/models_q4_km" ./llama-cli-smoke-test.sh
+#   TIMEOUT_SEC=600 ./llama-cli-smoke-test.sh                 # per-test time limit (default 300 s)
 #   ./llama-cli-smoke-test.sh path/to/previous_results.csv   # resume a prior run
 #
 # What it creates:
@@ -20,12 +22,12 @@
 # Resume behavior:
 #   Pass the old CSV path as the first argument. The script reuses the same log
 #   directory and skips rows already present in the CSV, continuing only for the
-#   remaining model/device/stateful combinations.
+#   remaining model/device combinations.
 #
 # Requirements:
 #   - llama-cli built and present at LLAMA_CLI_PATH (default: ./build/ReleaseOV/bin/llama-cli)
 #   - OpenVINO environment available via /opt/intel/openvino/setupvars.sh
-#   - Models in MODEL_DIR as *.gguf files
+#   - Models in MODEL_DIR as *.gguf files (symlinks are followed)
 #
 # Example:
 #   ./llama-cli-smoke-test.sh
@@ -33,17 +35,22 @@
 
 set -uo pipefail
 
-MODEL_DIR="${HOME}/models_q4_km"
+MODEL_DIR="${MODEL_DIR:-${HOME}/models_q4_km}"
 LLAMA_CLI_PATH="${LLAMA_CLI_PATH:-./build/ReleaseOV/bin/llama-cli}"
 CTX_SIZE=64
-TIMEOUT_SEC=300
+TIMEOUT_SEC="${TIMEOUT_SEC:-300}"
 
 # --- Resume Logic Configuration ---
 # Pass the old CSV file path as an argument to resume: ./script.sh [old_csv_path]
 RESUME_CSV="${1:-}"
 TIMESTAMP=$(date +"%Y%m%d_%H%M%S")
 
-if [[ -n "$RESUME_CSV" && -f "$RESUME_CSV" ]]; then
+if [[ -n "$RESUME_CSV" && ! -f "$RESUME_CSV" ]]; then
+    echo -e "\033[0;31m[ERROR]\033[0m Resume CSV not found: $RESUME_CSV"
+    exit 1
+fi
+
+if [[ -n "$RESUME_CSV" ]]; then
     echo -e "\033[0;36m[RESUME]\033[0m Found existing CSV file: $RESUME_CSV"
     CSV_OUTPUT="$RESUME_CSV"
     # Extract the original log base directory from the provided CSV path
@@ -123,16 +130,22 @@ run_test() {
 
     echo -e "${CYAN}[${test_num}/${total_tests_per_model}]${NC} $desc"
 
+    # --foreground keeps llama-cli in the terminal's process group, so it can read the prompts from script's tty.
+    local start=$SECONDS
     (
         while IFS= read -r line; do
             echo "$line"
             sleep 0.1
         done < "$PROMPTS_FILE"
     ) | script --quiet --return --command "
-        $env_vars ${CHOOM_PREFIX}'$LLAMA_CLI_PATH' -m '$model_path' -c $CTX_SIZE --simple-io --color off
+        $env_vars ${CHOOM_PREFIX}timeout --foreground -k 10 $TIMEOUT_SEC '$LLAMA_CLI_PATH' -m '$model_path' -c $CTX_SIZE --simple-io --color off
     " "$log_file" > /dev/null 2>&1
 
     local exit_code=$?
+    # timeout exits 124, or 137 when llama-cli ignored SIGTERM and had to be killed.
+    if [[ $exit_code -eq 137 && $((SECONDS - start)) -ge $TIMEOUT_SEC ]]; then
+        exit_code=124
+    fi
     local status="FAIL"
     local error_summary=""
     local prompt_speed="" gen_speed=""
@@ -194,7 +207,7 @@ if [[ ! -x "$LLAMA_CLI_PATH" ]]; then
     exit 1
 fi
 
-mapfile -t model_paths < <(find "$MODEL_DIR" -maxdepth 1 -name "*.gguf" -type f | sort)
+mapfile -t model_paths < <(find -L "$MODEL_DIR" -maxdepth 1 -name "*.gguf" -type f | sort)
 total_models=${#model_paths[@]}
 if [[ $total_models -eq 0 ]]; then
     echo -e "${RED}[ERROR]${NC} No .gguf models in $MODEL_DIR"
@@ -215,9 +228,7 @@ for model_path in "${model_paths[@]}"; do
 
     tests=(
         "CPU 0"
-        "CPU 1"
         "GPU 0"
-        "GPU 1"
         "NPU 0"
     )
     tests_per_model=${#tests[@]}
