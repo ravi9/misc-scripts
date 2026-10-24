@@ -84,7 +84,7 @@ Expected size: ~7.3 GB. If the model is gated, prepend `-H "Authorization: Beare
 
 ### 4) Run both GPU benchmarks
 > [!NOTE]
-> Following commands are for command prompt. For Powershell, setting env variable syntax is `$env:GGML_OPENVINO_DEVICE = "GPU"`, `$env:GGML_OPENVINO_STATEFUL_EXECUTION = "0"`
+> Following commands are for command prompt. For Powershell, setting env variable syntax is `$env:GGML_OPENVINO_DEVICE = "GPU"`.
 
 ```cmd
 cd /d C:\llamacpp-bench\llama.cpp
@@ -98,7 +98,6 @@ build\ReleaseVK\bin\llama-bench.exe ^
 :: ---- OpenVINO GPU ----
 call "C:\Intel\openvino\setupvars.bat"
 set GGML_OPENVINO_DEVICE=GPU
-set GGML_OPENVINO_STATEFUL_EXECUTION=0
 set GGML_OPENVINO_CACHE_DIR=C:\tmp\ov_cache
 
 build\ReleaseOV\bin\llama-bench.exe ^
@@ -242,7 +241,7 @@ Invoke-WebRequest `
 Expected size: ~7.3 GB.
 
 > [!NOTE]
-> Per `docs/backend/OPENVINO.md`, `gemma-4-12B-it-Q4_K_M` is validated on the OpenVINO **CPU** and **GPU** backends but is **not** validated on **NPU** (and stateful execution is unsupported for this model). This is why this guide compares Vulkan-GPU vs OpenVINO-GPU rather than involving the NPU.
+> Per `docs/backend/OPENVINO.md`, `gemma-4-12B-it-Q4_K_M` is validated on the OpenVINO **CPU** and **GPU** backends but is **not** validated on **NPU**. This is why this guide compares Vulkan-GPU vs OpenVINO-GPU rather than involving the NPU.
 
 ---
 
@@ -304,7 +303,6 @@ cd /d C:\llamacpp-bench\llama.cpp
 
 call "C:\Intel\openvino\setupvars.bat"
 set GGML_OPENVINO_DEVICE=GPU
-set GGML_OPENVINO_STATEFUL_EXECUTION=0
 set GGML_OPENVINO_CACHE_DIR=C:\tmp\ov_cache
 
 build\ReleaseOV\bin\llama-bench.exe ^
@@ -318,15 +316,13 @@ build\ReleaseOV\bin\llama-bench.exe ^
 Notes (all from `docs/backend/OPENVINO.md`):
 
 - `GGML_OPENVINO_DEVICE=GPU` selects the Intel GPU (use `GPU.0` / `GPU.1` for multi-GPU systems).
-- `GGML_OPENVINO_STATEFUL_EXECUTION=1` is the recommended GPU mode (the OpenVINO model owns the KV cache).
+- Stateless execution, the default, is the supported mode. `GGML_OPENVINO_STATEFUL_EXECUTION` is deprecated and will be removed; leave it unset.
 - `GGML_OPENVINO_CACHE_DIR` enables compiled-model caching across runs — the **first** run is slower because the GGML graph is translated/compiled to OpenVINO IR; the **second** run reads from cache and is the number you want to compare.
 - The OpenVINO backend ignores `-ngl` because it owns the whole graph; do not pass it.
 - `-fa 1` is **mandatory** for `llama-bench` with this backend.
 
 > [!TIP]
 > Run the OpenVINO command **twice** and use the second run's numbers for the comparison — that excludes the one-time graph compilation cost.
-
-If the validated-models table shows a model as `gemma-4-12B-it-Q4_K_M` ⇒ `GPU SF: ✗`, you may need to drop `GGML_OPENVINO_STATEFUL_EXECUTION=1` and rerun in stateless mode (`GGML_OPENVINO_STATEFUL_EXECUTION=0`).
 
 ---
 
