@@ -5,8 +5,8 @@ REM ============================================
 REM llama.cpp OpenVINO Build Script (Ninja)
 REM ============================================
 
-set "OPENVINO_VERSION_MAJOR=2026.3"
-set "OPENVINO_VERSION_FULL=2026.3.0.22451.bd8d6542e3c"
+set "OPENVINO_VERSION_MAJOR=2026.4.1"
+set "OPENVINO_VERSION_FULL=2026.4.1.22982.07f9c262b05"
 
 set "SCRIPT_DIR=%~dp0"
 set "VCPKG_DIR=C:\vcpkg"

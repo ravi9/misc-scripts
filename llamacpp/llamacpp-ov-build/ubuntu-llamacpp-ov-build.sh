@@ -4,8 +4,8 @@
 # ============================================
 set -euo pipefail
 
-OPENVINO_VERSION_MAJOR="2026.3"
-OPENVINO_VERSION_FULL="2026.3.0.22451.bd8d6542e3c"
+OPENVINO_VERSION_MAJOR="2026.4.1"
+OPENVINO_VERSION_FULL="2026.4.1.22982.07f9c262b05"
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 OPENVINO_INSTALL_DIR="/opt/intel/openvino_${OPENVINO_VERSION_MAJOR}"
