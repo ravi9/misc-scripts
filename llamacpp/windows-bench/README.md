@@ -198,7 +198,7 @@ What the script does (per `docs/backend/OPENVINO.md` automated Windows build scr
 
 1. `winget install` Git, Ninja, CMake, VS 2022 Build Tools.
 2. Clones `https://github.com/microsoft/vcpkg` to `C:\vcpkg`, bootstraps it, and installs `opencl`.
-3. Downloads OpenVINO Runtime `2026.2` and extracts it to `C:\Intel\openvino_2026.2`, then exposes a stable junction at `C:\Intel\openvino`.
+3. Downloads OpenVINO Runtime `2026.4.1` and extracts it to `C:\Intel\openvino_2026.4.1`, then exposes a stable junction at `C:\Intel\openvino`.
 4. Calls `setupvars.bat`, then:
    ```cmd
    cmake -B build\ReleaseOV -G Ninja ^
